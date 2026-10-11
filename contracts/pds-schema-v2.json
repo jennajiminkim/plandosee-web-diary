@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "plan.do.see persistence contract v2",
+  "description": "A data dictionary and relationship contract, not a validation schema for database row objects.",
+  "version": 2,
+  "database": "Supabase PostgreSQL",
+  "api": {"route": "/api/state", "methods": ["GET", "POST"], "visibility": "public_without_login", "secrets": "Vercel server environment only", "readLimitPerTable": 3000},
+  "dateRules": {
+    "calendar_dates": {"type": "PostgreSQL date", "transport": "YYYY-MM-DD", "rule": "No timezone conversion for date-only values"},
+    "execution_times": {"type": "PostgreSQL timestamptz", "transport": "ISO-8601 UTC instant", "rule": "Store UTC; display in Asia/Seoul or browser locale with explicit label"},
+    "overdue": {"timezone": "Asia/Seoul", "rule": "status != done AND due_date < current calendar date in Seoul"},
+    "time_units": {"estimated_minutes": "integer minutes", "actual_minutes": "integer minutes", "difference": "actual minus estimated, integer minutes", "calculation": "round((ended_at - started_at) seconds / 60)"},
+    "current_week": {"firstWeekday": "Monday", "lastWeekday": "Sunday"},
+    "priority": "positive integer; 1 is most important"
+  },
+  "tables": {
+    "pds_plans": {"primaryKey": "id", "fields": {"id": "uuid", "title": "text", "start_date": "date", "end_date": "date", "priority": "integer", "success_criteria": "text", "estimated_minutes": "integer", "from_reflection_id": "uuid nullable; logical link to pds_reflections.id", "created_at": "timestamptz", "updated_at": "timestamptz"}, "constraints": ["end_date >= start_date", "priority >= 1", "estimated_minutes >= 0"]},
+    "pds_plan_versions": {"primaryKey": "id", "fields": {"id": "uuid", "plan_id": "uuid", "snapshot": "jsonb (entire previous plan row)", "changed_at": "timestamptz"}, "relations": {"plan_id": "pds_plans.id"}, "rules": ["Snapshot and plan update occur in a single database transaction via pds_update_plan"]},
+    "pds_tasks": {"primaryKey": "id", "fields": {"id": "uuid", "plan_id": "uuid nullable", "title": "text", "priority": "integer", "tag": "text", "color": "#RRGGBB", "due_date": "date nullable", "start_date": "date nullable", "end_date": "date nullable", "mode": "single|range|repeat", "estimated_minutes": "integer", "estimate_basis": "total|per_session", "status": "active|done", "completed_at": "timestamptz nullable", "deleted_at": "timestamptz nullable", "created_at": "timestamptz"}, "relations": {"plan_id": "pds_plans.id (optional)"}, "rules": ["Soft delete: deleted_at does not physically delete child records", "Only nondeleted tasks count toward plan metrics"]},
+    "pds_cells": {"primaryKey": "id", "unique": ["task_id", "day"], "fields": {"id": "uuid", "task_id": "uuid", "day": "date", "state": "planned|progress|done", "progress": "text", "note": "text"}, "relations": {"task_id": "pds_tasks.id"}},
+    "pds_logs": {"primaryKey": "id", "fields": {"id": "uuid", "task_id": "uuid", "started_at": "timestamptz", "ended_at": "timestamptz", "actual_minutes": "integer", "progress": "text", "blocker": "text", "created_at": "timestamptz"}, "relations": {"task_id": "pds_tasks.id"}, "rules": ["Execution logs do not overwrite the plan or task estimated time", "Blocker count is unique task count with at least one nonblank blocker"]},
+    "pds_completion_events": {"primaryKey": "task_id", "fields": {"task_id": "uuid", "completed_at": "timestamptz"}, "relations": {"task_id": "pds_tasks.id"}, "rules": ["Database transaction locks task row", "Primary key prevents duplicate completion event per task", "Current completed count uses task.status, not event count"]},
+    "pds_reflections": {"primaryKey": "id", "unique": ["plan_id"], "fields": {"id": "uuid", "plan_id": "uuid", "question": "text", "answer": "text", "improvement": "text", "next_plan_id": "uuid nullable", "updated_at": "timestamptz"}, "relations": {"plan_id": "pds_plans.id", "next_plan_id": "pds_plans.id nullable"}, "rules": ["pds_create_next_plan creates next plan once and links it to the reflection"]}
+  },
+  "aggregation": {
+    "scope": "one selected plan_id",
+    "planned": "count(pds_tasks where plan_id matches and deleted_at is null)",
+    "completed": "count(filtered_tasks where status='done')",
+    "overdue": "count(filtered_tasks where status!='done' and due_date < Seoul today)",
+    "blocked": "count(distinct task_id where any linked log has nonempty trimmed blocker)",
+    "estimated": "sum(filtered_tasks.estimated_minutes), or 0",
+    "actual": "sum(pds_logs.actual_minutes for filtered tasks), or 0",
+    "difference": "actual - estimated",
+    "evidence": "Clickable metric reveals linked tasks; time metric opens time details which links to task execution records"
+  },
+  "security": {"rls": "enabled on all tables", "direct_anon_access": "revoked", "direct_authenticated_access": "revoked", "mutations": "Vercel server function with service-role credentials", "publicAccessWarning": "No login. All API-backed data is public via the app; anyone can also mutate it."}
+}

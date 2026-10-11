@@ -1,0 +1,159 @@
+:root{--paper:#faf8f2;--line:#dedbd1;--ink:#303b39;--muted:#7e8983;--sage:#dce9dc;--sky:#dfeaf5;--yellow:#f5edc8;--white:#fffefa;--red:#b45c56}*{box-sizing:border-box}body{margin:0;background:#eeeee8;color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}button:disabled{cursor:not-allowed;opacity:.5}.shell{max-width:1220px;margin:26px auto 60px;background:var(--paper);padding:32px 44px;box-shadow:0 6px 35px #303b3912;min-height:94vh;background-image:linear-gradient(to bottom,transparent 35px,#dedbd115 36px)}.notice{display:flex;gap:12px;background:#eaece8;padding:12px 16px;border-left:3px solid #9aaea5;font-size:12px;line-height:1.6}.top{display:flex;flex-direction:column;align-items:stretch;padding:34px 0 30px;border-bottom:1px solid var(--line);gap:20px}h1{font-family:Georgia,serif;font-size:40px;font-weight:400;letter-spacing:-2px;margin:0;line-height:1.1}h2{font-size:17px;font-weight:650;margin:0}.tagline{font-family:Georgia,serif;font-style:italic;color:var(--muted);margin:6px 0 0;font-size:17px}.navigation{display:flex;gap:9px;align-items:center;justify-content:center;width:100%}.navigation button{background:none;border:1px solid var(--line);width:34px;height:34px;border-radius:5px}.navigation button.light{width:auto;padding:0 12px}.weeklabel{text-align:center;min-width:265px}.weeklabel strong{display:block;font-size:13px}.weeklabel small,.micro,.hint,.under-table,.section-head small{font-size:12px;color:var(--muted)}.section-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:30px 0 14px}.micro{letter-spacing:1.3px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.toolbar input{flex:1;min-width:180px}.toolbar select{max-width:210px}input,select,textarea{background:var(--white);border:1px solid var(--line);padding:10px 12px;border-radius:5px;min-height:40px;color:var(--ink);width:100%}textarea{resize:vertical}input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid #8aaea6;outline-offset:2px}.primary{background:#334b43;color:white;border:1px solid #334b43;border-radius:5px;padding:10px 16px;white-space:nowrap}.light{background:#f4f4ef;border:1px solid var(--line);border-radius:5px;padding:9px 14px}.link-btn{background:none;border:none;color:#546f67;text-decoration:underline;text-underline-offset:4px;font-size:12px;padding:6px}.table-wrap{overflow-x:auto;border:1px solid var(--line);background:var(--white)}.weekly{border-collapse:collapse;width:100%;table-layout:fixed;min-width:770px}.weekly th{font-size:11px;font-weight:600;color:#63716c;background:#f0f0e9;height:48px}.weekly th,.weekly td{border-right:1px solid #e6e4dc;border-bottom:1px solid #e6e4dc;text-align:center}.weekly tr:last-child td{border-bottom:0}.weekly th:last-child,.weekly td:last-child{border-right:0}.rank-col{width:56px}.task-col{width:250px;text-align:left!important;padding-left:12px}.task-col small{display:block;font-weight:400;color:var(--muted)}.day-col{width:calc((100% - 306px)/7)}.weekly td{height:67px}.rank{background:#f9f8f3;font-weight:600;font-size:14px}.rank button{background:none;border:none;font-weight:600;display:flex;justify-content:center;align-items:center;width:100%;padding:0}.priority-badge{width:34px;height:34px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#2f49c7;border:none;box-shadow:none}.task-name{display:flex;align-items:center;gap:8px;text-align:left;padding:8px 10px}.task-name button{border:0;background:none;text-align:left;padding:0;flex:1;min-width:0}.task-name strong{font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.task-name small{display:block;color:var(--muted);font-size:11px}.done-title strong{text-decoration:line-through;color:#75847c}.cell-btn{background:transparent;border:0;width:100%;height:66px;padding:5px 1px;display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center}.cell-btn:hover{background:#eef5f0}.cell-btn .mark{font-size:16px;line-height:1}.cell-btn .progress{font-size:10px;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cell-btn.range{background:#e1ebdf}.empty-state{padding:38px;text-align:center;color:var(--muted)}.under-table{display:flex;align-items:center;gap:16px;padding:12px 0;flex-wrap:wrap}.under-table span{margin-right:auto}.metrics,.reflection{border-top:1px solid var(--line);margin-top:24px}.plan-picker{display:flex;gap:12px;align-items:center;max-width:460px;margin:14px 0}.plan-picker label{font-size:12px;color:var(--muted);white-space:nowrap}.time-cards,.count-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.time-cards>div{background:#eeeee8;padding:18px 20px;display:flex;flex-direction:column;gap:5px}.time-cards span,.count-cards span{color:var(--muted);font-size:12px}.time-cards strong{font-size:21px;font-weight:550}.count-cards{grid-template-columns:repeat(4,minmax(0,1fr));margin:15px 0 22px}.count-cards button{border:1px solid var(--line);background:var(--white);padding:12px;display:flex;flex-direction:column;align-items:center;gap:2px}.count-cards button:hover{background:#eaf1e8}.count-cards strong{font-size:23px;font-weight:550}.reflection-field{padding:15px 0}.fieldtop{display:flex;align-items:center;justify-content:space-between}.fieldtop label{font-weight:600}.question{margin:8px 0 10px;color:#68786e;font-size:13px}.soft-details{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:13px 0}.soft-details summary{cursor:pointer;font-weight:600;font-size:13px}.soft-details textarea{margin:12px 0 6px}.actions{display:flex;align-items:center;gap:15px;margin:15px 0}.evidence{background:#f1f3ed;padding:12px 17px;margin-bottom:15px}.evidence button{display:block;border:none;background:none;text-align:left;color:#375e56;padding:6px 0;text-decoration:underline}.overlay[hidden],.evidence[hidden]{display:none}.overlay{position:fixed;inset:0;z-index:10}.shade{position:absolute;inset:0;background:#15241b78}.drawer{position:absolute;right:0;top:0;bottom:0;width:min(520px,100%);background:var(--paper);overflow-y:auto;box-shadow:-10px 0 40px #14201b35;padding:24px 28px 65px}.drawer-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:20px}.drawer-head button{border:0;background:none;font-size:20px}.drawer-body{display:flex;flex-direction:column;gap:12px}.drawer label{display:block;margin:14px 0 5px;font-weight:600;font-size:12px}.drawer .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.drawer .panel{background:#f1f1ea;padding:14px;margin:14px 0}.drawer .panel h3{font-size:14px;margin:0 0 6px}.drawer .panel p{margin:4px 0}.drawer .buttons{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.drawer .help{font-size:12px;color:var(--muted)}.drawer .log-item{border-bottom:1px solid var(--line);padding:10px 0;font-size:13px}.drawer .row-mini{display:flex;align-items:center;justify-content:space-between;gap:12px}.drawer details{margin:14px 0}.drawer summary{cursor:pointer;font-weight:600}.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#283e34;color:#fff;padding:11px 18px;border-radius:6px;display:none;z-index:30;max-width:90vw}footer{margin-top:65px;padding-top:15px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:11px}@media(max-width:750px){.shell{margin:0;padding:18px 15px}.top{align-items:flex-start;flex-direction:column;padding:25px 0}h1{font-size:36px}.navigation{width:100%;justify-content:flex-end}.toolbar input{width:100%;flex:auto}.toolbar select{flex:1;max-width:unset;min-width:130px}.time-cards>div{padding:12px}.time-cards strong{font-size:16px}.count-cards{gap:6px}.drawer{padding:18px}.micro{font-size:9px}.weeklabel{min-width:140px}}@media(prefers-reduced-motion:no-preference){button,.cell-btn{transition:background .12s ease}} 
+.preview-notice{padding:10px 14px;margin-bottom:8px;background:#fff1d6;border:1px solid #e7d5b4;border-radius:5px;font-size:12px;color:#5b5649;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.preview-notice button{border:0;background:none;text-decoration:underline;text-underline-offset:3px;padding:2px 5px;color:#4d5b46;font-size:12px;margin-left:auto}.plan-section{margin-top:26px}.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.plan-card{border:1px solid var(--line);background:var(--white);border-radius:6px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:6px}.plan-card.active{border-color:#90a89f;background:#eef5f0}.plan-card strong{font-size:14px}.plan-card small{color:var(--muted);font-size:12px}.plan-card .meta{display:flex;gap:6px;flex-wrap:wrap}.plan-card .pill{font-size:11px;background:#f0f1eb;padding:3px 8px;border-radius:999px}.plan-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}.drawer .field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}.drawer .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}.drawer .buttons{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 10px}.drawer form .buttons:last-child{margin-bottom:0}.soft-panel{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:15px 0}.soft-panel label{display:block;font-weight:600;margin-bottom:8px}.soft-panel textarea{margin-bottom:12px}
+/* ----------------------------------------------------------
+   plan.do.see / color-only refresh
+   Neutral white #FAFAFA from reference swatch + cobalt blue,
+   pale blue, pale purple and pale green.
+   Original markup and application logic are unchanged.
+   ---------------------------------------------------------- */
+:root {
+  --paper: #FAFAFA;
+  --white: #FFFFFF;
+  --line: #E3E8F1;
+  --ink: #233452;
+  --muted: #707C96;
+  --sky: #ECF3FF;
+  --sage: #E5F7ED;
+  --yellow: #F1EDFF;
+  --red: #BA5D95;
+  --blue: #2456EA;
+  --blue-soft: #EDF3FF;
+  --purple-soft: #F2EEFF;
+  --green-soft: #E7F8EE;
+}
+body { background: #F5F7FA; color: var(--ink); }
+.shell {
+  background: var(--paper);
+  background-image: none;
+  box-shadow: 0 8px 35px rgba(49,70,118,.065);
+}
+.preview-notice {
+  background: #EDF4FF;
+  border-color: #D7E3FF;
+  color: #4A5D86;
+}
+.preview-notice button { color: var(--blue); }
+.notice {
+  background: var(--purple-soft);
+  border-left-color: #8E86DD;
+  color: #445187;
+}
+h1 { color: var(--blue); }
+h2 { color: #213A72; }
+.tagline { color: #5775D0; }
+.top, footer, .metrics, .reflection { border-color: var(--line); }
+.navigation button {
+  background: #F3F7FF;
+  border-color: #DDE6FA;
+  color: var(--blue);
+}
+.navigation button:hover { background: #E5EEFF; }
+.navigation .weeklabel strong { color: var(--blue); }
+.micro { color: #7282A5; }
+input, select, textarea {
+  background: var(--white);
+  border-color: #DDE4F0;
+  color: var(--ink);
+}
+input:focus, select:focus, textarea:focus, button:focus-visible {
+  outline-color: #8EACFF;
+}
+.primary { background: var(--blue); border-color: var(--blue); color: #FFF; }
+.primary:hover { background: #1944CE; border-color: #1944CE; }
+.light { background: var(--blue-soft); border-color: #DCE5F8; color: #3655AE; }
+.light:hover { background: #E1ECFF; }
+.link-btn { color: #3B63D5; }
+.table-wrap { border-color: var(--line); background: #FFF; }
+.weekly th { color: #4C6089; background: #F3F7FF; }
+.weekly th, .weekly td {
+  border-right-color: #E6EBF3;
+  border-bottom-color: #E6EBF3;
+}
+.weekly th:nth-child(8) { color: var(--blue); }
+.weekly th:nth-child(9) { color: var(--red); }
+.rank { background: #F5F3FF; color: #4E59BA; }
+.task-name small, .task-col small { color: #7885A0; }
+.done-title strong { color: #8091B0; }
+.cell-btn:hover { background: #EDF4FF; }
+.cell-btn.range { background: #EEF3FF; }
+.time-cards > div {
+  background: #FFFFFF;
+  border: 1px solid var(--line);
+}
+.time-cards > div:nth-child(1) strong { color: var(--blue); }
+.time-cards > div:nth-child(2) strong { color: #16856B; }
+.time-cards > div:nth-child(3) strong { color: #7059BF; }
+.count-cards button { background: #FFFFFF; border-color: var(--line); }
+.count-cards button:hover { background: #F8FAFF; }
+.count-cards strong { color: #2E4CAD; }
+.count-cards button:nth-child(2) strong { color: #158267; }
+.count-cards button:nth-child(3) strong { color: #7359B7; }
+.question { color: #687997; }
+#answer { background: #F5F2FF; border-color: #E7DFFD; }
+#improvement { background: #FFFFFF; border-color: #DDE4F0; }
+/* Keep both reflection fields equally spacious, neutral, and distraction-free. */
+#answer, #improvement {
+  background: #FFFFFF;
+  border-color: #DDE4F0;
+  min-height: 132px;
+  height: 132px;
+  resize: vertical;
+}
+/* Priority cells stay white: colors are reserved for task categories and progress. */
+.weekly td.rank { background: #FFFFFF; color: var(--ink); }
+.weekly td.rank button { color: inherit; }
+.evidence { background: #EDF4FF; }
+.evidence button { color: #3457BD; }
+.drawer { background: #FBFBFA; box-shadow: -10px 0 40px rgba(32,51,103,.18); }
+.drawer .panel { background: #F1F5FF; }
+.shade { background: rgba(24,38,75,.45); }
+.toast { background: #234CB8; }
+.plan-card { background: #FFFFFF; border-color: var(--line); }
+.plan-card:hover { border-color: #B9CAED; background: #F9FBFF; }
+.plan-card.active { background: #EDF3FF; border-color: #7E9FE9; }
+.plan-card .pill { background: var(--purple-soft); color: #5F58A4; }
+::selection { background: #DAE6FF; color: #233452; }
+
+/* A paper planner's day / English weekday stack */
+.weekly th.day-col {
+  height: 76px;
+  vertical-align: middle;
+  padding: 8px 2px;
+  background: #F3F7FF;
+}
+.day-number {
+  display: block;
+  color: #233C85;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -.035em;
+  font-variant-numeric: tabular-nums;
+}
+.day-week {
+  display: block;
+  margin-top: 7px;
+  color: #6B7DA3;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 650;
+  letter-spacing: .065em;
+}
+.weekly th.day-col:nth-child(8) .day-number,
+.weekly th.day-col:nth-child(8) .day-week { color: #2456EA; }
+.weekly th.day-col:nth-child(9) .day-number,
+.weekly th.day-col:nth-child(9) .day-week { color: #BA5D95; }
+
+/* Period-type tasks inherit the category hue shown in their solid priority badge.
+   Only the in-range cells are tinted; weekday headers and normal cells are unchanged. */
+.cell-btn.range {
+  background-color: var(--period-tint, #e7effc);
+  color: #253755;
+}
+.cell-btn.range:hover {
+  background-color: var(--period-hover, #dde9fb);
+}
+
+/* Submission: clickable time evidence figures. */
+#estTotal[role="button"],#actualTotal[role="button"],#diffTotal[role="button"]{cursor:pointer;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
+#estTotal:focus-visible,#actualTotal:focus-visible,#diffTotal:focus-visible{outline:2px solid #2456EA;outline-offset:4px}
