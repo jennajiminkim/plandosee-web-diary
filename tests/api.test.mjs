@@ -71,3 +71,38 @@ test('2026 Supabase secret key is sent as apikey only (never Bearer)',async t=>{
  assert.equal(calls[0].options.headers.apikey,'sb_secret_TEST_ONLY_DO_NOT_USE');
  assert.equal(calls[0].options.headers.Authorization,undefined);
 });
+
+test('v3: task inherits its linked plan priority regardless of typed priority',async t=>{
+ const calls=prepare(t,(url,opts)=>{
+  if(url.includes('/pds_plans?'))return [{id:base,priority:2,deleted_at:null}];
+  return [{id:taskId,...JSON.parse(opts.body||'{}')}];
+ });
+ const res=await request('task.create',{title:'실행 계획',plan_id:base,priority:99,tag:'공부',color:'#F5DCDC'});
+ assert.equal(res.statusCode,200);assert.equal(res.body.result.priority,2);
+ assert.equal(JSON.parse(calls.at(-1).options.body).priority,2);
+});
+
+test('v3: plan.delete marks only plan deleted, not linked task/log tables',async t=>{
+ const calls=prepare(t,(url,opts)=>[{id:base,deleted_at:null}]);
+ const res=await request('plan.delete',{id:base});
+ assert.equal(res.statusCode,200);
+ assert.ok(calls.every(c=>!c.url.includes('/pds_tasks')&&!c.url.includes('/pds_logs')));
+ assert.ok(calls.some(c=>c.options.method==='PATCH'&&c.url.includes('/pds_plans')));
+});
+
+test('v3: weekly journal save uses atomic RPC and carries theme',async t=>{
+ const calls=prepare(t,()=>({id:reflectionId,week_start:'2026-10-12'}));
+ const res=await request('journal.save',{week_start:'2026-10-12',plan_id:base,question:'이번 주?',discovery:'한 문장',next_action:'더 작게',bg_color:'#FAFAFA',date_color:'#1E4099'});
+ assert.equal(res.statusCode,200);
+ assert.ok(calls[0].url.endsWith('/rpc/pds_save_weekly_review'));
+ assert.equal(JSON.parse(calls[0].options.body).p_next_action,'더 작게');
+});
+
+test('v3 migration: additive schema with soft delete and weekly unique journal',()=>{
+ const sql=readFileSync(new URL('../supabase/upgrade-v3.sql',import.meta.url),'utf8');
+ assert.match(sql,/ALTER TABLE public\.pds_plans ADD COLUMN IF NOT EXISTS deleted_at/);
+ assert.match(sql,/week_start date NOT NULL UNIQUE/);
+ assert.match(sql,/UPDATE public\.pds_tasks SET priority=p_priority/);
+ assert.match(sql,/pds_color_swatches/);
+ assert.doesNotMatch(sql.replace(/^--.*$/gm,''),/\bTRUNCATE\b|\bDROP TABLE\b/i);
+});

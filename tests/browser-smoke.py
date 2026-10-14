@@ -17,6 +17,8 @@ with sync_playwright() as p:
  page.evaluate(mock_js,state)
  page.set_content(html,wait_until='load')
  page.wait_for_timeout(300)
+ page.evaluate("week=weekStart(new Date('2026-10-07T12:00:00'));render()")
+
  assert page.get_by_text('주간 체크표').count()==1
  assert page.get_by_text('내 실제 학습 계획').count()>=1
  assert page.locator('.priority-badge').count()==1

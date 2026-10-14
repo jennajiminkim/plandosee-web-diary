@@ -1,6 +1,6 @@
 // Task 6: public UI -> Vercel server API -> Supabase REST (service role only on server).
 // WARNING: no login by design. Anyone with the URL can read AND change public data.
-const tables={plans:'pds_plans',versions:'pds_plan_versions',tasks:'pds_tasks',cells:'pds_cells',logs:'pds_logs',completions:'pds_completion_events',reflections:'pds_reflections'};
+const tables={plans:'pds_plans',versions:'pds_plan_versions',tasks:'pds_tasks',cells:'pds_cells',logs:'pds_logs',completions:'pds_completion_events',reflections:'pds_reflections',journals:'pds_weekly_reviews',colors:'pds_color_swatches'};
 const allowedTags=['업무','공부','취미','약속','생활','기타'];
 const str=(v,max=1000)=>String(v??'').slice(0,max);
 const date=v=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(v||''))return null;const d=new Date(`${v}T00:00:00Z`);return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===v?v:null;};
@@ -61,13 +61,18 @@ async function act(action,data){let task,plan;
   return rpc('pds_update_plan',{p_id:plan.id,p_title:str(data.title,180),p_start_date:start,p_end_date:end,
    p_priority:Math.max(1,number(data.priority,999)),p_success_criteria:str(data.success_criteria),p_estimated_minutes:number(data.estimated_minutes)});
  }
+ case 'plan.delete':{
+  plan=await one('plans',requireId(data.id,'계획 ID'));
+  if(plan.deleted_at)return {id:plan.id,deleted_at:plan.deleted_at};
+  return patch('plans',plan.id,{deleted_at:new Date().toISOString()});
+ }
  case 'task.create':{
-  const fields=taskFields(data);if(fields.plan_id)await one('plans',fields.plan_id);
+  const fields=taskFields(data);if(fields.plan_id){const p=await one('plans',fields.plan_id);if(p.deleted_at)throw codeError('삭제된 계획에는 연결할 수 없습니다.');fields.priority=p.priority;}
   return insert('tasks',fields);
  }
  case 'task.update':{
   task=await activeTask(requireId(data.id,'할 일 ID'));
-  const fields=taskFields({...task,...data});if(fields.plan_id)await one('plans',fields.plan_id);
+  const fields=taskFields({...task,...data});if(fields.plan_id){const p=await one('plans',fields.plan_id);if(p.deleted_at&&fields.plan_id!==task.plan_id)throw codeError('삭제된 계획에는 연결할 수 없습니다.');fields.priority=p.priority;}
   return patch('tasks',task.id,fields);
  }
  case 'task.delete':{
@@ -95,6 +100,12 @@ async function act(action,data){let task,plan;
  }
  case 'log.delete':{
   await one('logs',requireId(data.id,'실행 기록 ID'));await db('logs',{method:'DELETE',query:byId(data.id)});return {deleted:true};
+ }
+ case 'journal.save':{
+  const w=date(data.week_start);if(!w)throw codeError('주간 시작 날짜를 확인하세요.');
+  const bg=/^#[0-9a-f]{6}$/i.test(data.bg_color||'')?data.bg_color:'#FAFAFA';
+  const ink=/^#[0-9a-f]{6}$/i.test(data.date_color||'')?data.date_color:'#1E4099';
+  return rpc('pds_save_weekly_review',{p_week_start:w,p_plan_id:uuid(data.plan_id)?data.plan_id:null,p_question:str(data.question,350),p_discovery:str(data.discovery,5000),p_next_action:str(data.next_action,2000),p_bg_color:bg,p_date_color:ink});
  }
  case 'reflection.save':{
   await one('plans',requireId(data.plan_id,'계획 ID'));
