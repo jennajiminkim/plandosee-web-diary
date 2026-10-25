@@ -196,11 +196,12 @@ function openCell(t,day){
  f.onsubmit=async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(f)),a=data.started_at,b=data.ended_at;
  if((a&&!b)||(!a&&b)){toast('시간은 시작과 종료를 모두 입력해 주세요.');return}
  if(selector?.value&&a&&b){toast('기존 실행 기록은 변경하지 않았습니다. 중복 기록 방지를 위해 새 기록 추가를 선택해 주세요.');return}
+ if(data.blocker.trim()&&!a&&!b){toast('막힌 이유를 저장하려면 실행 시작·종료 시각을 입력해 주세요.');return}
  let times=null;
  if(a&&b){const start=new Date(day+'T'+a),end=new Date(day+'T'+b);if(end<start)end.setDate(end.getDate()+1);if(!Number.isFinite(start.getTime())||!Number.isFinite(end.getTime())||end-start>86400000){toast('실행 시간을 확인하세요. 최대 24시간까지 기록할 수 있어요.');return}times={started_at:start.toISOString(),ended_at:end.toISOString()}}
  const saved=await run('cell.save',{task_id:t.id,day,state:data.state,progress:data.progress,note:data.note});if(!saved)return;
  if(times){const log=await run('log.create',{task_id:t.id,...times,progress:data.progress,blocker:data.blocker});if(!log){toast('진행 상태는 저장됐지만 시간 기록은 저장되지 않았습니다.');return}}
- else if(data.blocker.trim()){toast('막힌 이유는 실행 시간을 함께 입력해야 저장됩니다.');return}
+ 
  closeDrawer();
  };
  });
