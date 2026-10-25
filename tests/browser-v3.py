@@ -15,7 +15,7 @@ with sync_playwright() as p:
  page.goto('about:blank')
  page.evaluate('(s)=>{window.fetch=async()=>({ok:true,json:async()=>s});window._mock=s}',state)
  page.set_content(html,wait_until='load')
- page.evaluate("week=weekStart(new Date('2026-10-07T12:00:00'));render()")
+ page.evaluate(f"week=weekStart(new Date('2026-10-07T12:00:00'));selectedPlan='{plan_id}';render()")
  assert page.locator('#answer').input_value()==''
  assert page.locator('#improvement').input_value()==''
  assert page.locator('#estTotal').inner_text()=='0h 20m'
