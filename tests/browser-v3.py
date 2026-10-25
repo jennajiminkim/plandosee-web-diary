@@ -40,6 +40,17 @@ with sync_playwright() as p:
  page.locator('#f-plan_id').select_option('')
  assert page.locator('#f-priority').get_attribute('readonly') is None
  page.locator('#closeDrawer').click()
+ page.evaluate("openCell(state.tasks[0],'2026-10-07')")
+ assert page.get_by_text('오늘의 진행 상태').is_visible()
+ assert page.locator('#f-progress').is_visible()
+ assert page.locator('#f-started_at').get_attribute('type')=='time'
+ assert page.locator('#f-ended_at').get_attribute('type')=='time'
+ assert page.locator('#f-blocker').is_visible()
+ assert page.locator('#f-note').is_visible()
+ page.locator('#taskOpen').click()
+ assert page.locator('#scheduleType').is_visible()
+ assert page.locator('#f-priority').is_visible()
+ page.locator('#closeDrawer').click()
  page.locator('.plan-card').dblclick()
  assert page.locator('#deletePlan').is_visible()
  page.locator('#closeDrawer').click()
