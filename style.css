@@ -198,3 +198,350 @@ input[readonly]{background:#F4F7FC;color:#4d6088;cursor:not-allowed}
 .journal-theme{border:1px solid #CAD5EA;border-radius:6px;padding:10px 13px;font-size:12px}
 .reflection-field>label,.reflection-field .fieldtop>label{font-size:17px;font-weight:650;color:#24385c}
 @media(max-width:750px){.journal-card{grid-template-columns:1fr;gap:12px;padding:17px}.journal-date{align-items:flex-start;padding:0}.journal-date strong{font-size:78px}.journal-body{gap:16px}.journal-lines{--journal-row-height:36px;font-size:14px}.page-tabs button{padding:10px 12px}.archive-nav{gap:6px}.archive-nav button{padding:3px 8px}}
+
+
+/* Ported Task 7 shared planner styling. No authentication styles. */
+/* Task 7 PLAN / DO: compact always-visible fields, no nested forms or hidden panels. */
+.drawer-kicker,.drawer-section-label{font-size:11px;font-weight:750;letter-spacing:.085em;color:#3158a2;margin:8px 0 12px}
+.drawer-section-label{border-top:1px solid #dde5f0;padding-top:18px;margin-top:22px}
+.drawer-section-label small,.first-step-label small{font-size:11px;font-weight:500;letter-spacing:0;color:#8798b2;margin-left:5px}
+.first-step-box{border:1px solid #dce7f8;border-radius:12px;padding:16px 15px;background:#f0f5ff;margin:17px 0}
+.first-step-box label{margin-top:8px!important;color:#29497e}
+.first-step-box input{background:white}
+.first-step-box .help{margin:8px 0 0;line-height:1.6}
+.first-step-label{font-size:11px;letter-spacing:.08em;font-weight:750;color:#2b55a2}
+.first-step-view{border:1px solid #dce7f8;background:#f0f5ff;border-radius:12px;padding:14px 16px;margin-bottom:18px}
+.first-step-view .drawer-kicker{display:block;margin:0 0 6px}
+.first-step-view p{margin:0 0 5px;font-size:14px;font-weight:600;overflow-wrap:anywhere}
+.first-step-view small{color:#7087ac;font-size:11px}
+#scheduleDates[hidden]{display:none!important}
+#taskForm .buttons .primary,#cellForm .buttons .primary{flex:1;min-width:150px}
+#taskForm .help,#cellForm .help{line-height:1.6}
+#taskForm select,#cellForm select{max-width:100%}
+@media(max-width:520px){#taskForm .two,#cellForm .two{grid-template-columns:1fr 1fr;gap:9px}.first-step-box{padding:13px}}
+
+/* Task 7 readability: plan-entry labels match the 15px field text. */
+.drawer #taskForm .field > label,
+.drawer #taskForm .first-step-box > label {
+  font-size:15px;
+  font-weight:650;
+  line-height:1.5;
+}
+.drawer #taskForm .first-step-label {
+  font-size:15px;
+  font-weight:750;
+  letter-spacing:.025em;
+}
+.drawer #taskForm .first-step-label small {
+  font-size:12px;
+  font-weight:500;
+}
+.drawer #taskForm .drawer-section-label {
+  font-size:13px;
+}
+/* Priority numbers are informational; open task details from the task title. */
+.weekly td.rank .priority-badge {cursor:default}
+
+/* Task 7: one consistent color for priority and the compact theme badge. */
+.weekly .task-name button {
+ display:flex;flex-direction:column;align-items:flex-start;gap:0;
+ width:100%;max-width:100%;min-width:0;
+}
+.weekly .task-title-row {
+ display:flex;align-items:center;gap:7px;
+ max-width:100%;min-width:0;width:100%;
+}
+.weekly .task-title-row strong {
+ display:block;flex:0 1 auto;min-width:0;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font-size:13px;line-height:1.5;
+}
+.weekly .task-theme {
+ display:inline-flex;flex:none;align-items:center;justify-content:center;
+ max-width:100%;border-radius:999px;padding:3px 9px;
+ font-size:10px;line-height:1.5;font-weight:300;
+ white-space:nowrap;
+}
+.weekly .task-first-step {
+ display:flex;gap:5px;align-items:flex-start;margin-top:5px;
+ color:#7d8998;font-size:11px;line-height:1.5;
+ max-width:100%;width:100%;min-width:0;text-align:left;
+}
+.weekly .task-first-step-arrow {flex:none;font-size:12px;line-height:1.4}
+.weekly .task-first-step-copy {
+ display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+ overflow:hidden;overflow-wrap:anywhere;white-space:normal;
+}
+.weekly .task-name button:hover .task-first-step-copy {color:#586d87}
+
+/* Task 7: time observation + plan reflection, a balanced 60:40 pair. */
+.insights-grid {
+ display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);
+ align-items:stretch;gap:16px;margin-top:26px;
+ border-top:1px solid var(--line);padding-top:22px;
+}
+.insights-grid > .insights-card {
+ min-width:0;margin:0;padding:19px 22px 18px;
+ border:1px solid #dce5f1;background:var(--white);
+ border-radius:10px;
+}
+.insights-card .section-head {margin:0 0 12px;gap:10px}
+.insights-card .section-head h2 {color:#234b95}
+.insights-card .section-head small {font-size:11px;text-align:right}
+.insights-grid .plan-picker {
+ display:flex;align-items:center;gap:9px;max-width:100%;min-width:0;
+ margin:4px 0 14px;
+}
+.insights-grid .plan-picker label {flex:none}
+.insights-grid .plan-picker select {flex:1;min-width:0;max-width:100%}
+/* Time observation card — reference layout: balanced donut, editorial comparison, long divider. */
+.insights-grid > .metrics {
+  --time-blue:#5F8FF6;
+  --time-mint:#39D3AD;
+  --time-purple:#D9B9ED;
+  --time-track:#E9EDF5;
+  display:flex;
+  flex-direction:column;
+  min-height:540px;
+  container:time-card / inline-size;
+}
+.time-overview {
+  display:grid;
+  grid-template-columns:minmax(0,275px) minmax(0,1fr);
+  align-items:stretch;
+  gap:13px;
+  min-height:304px;
+  margin:28px 0 16px;
+}
+.time-donut-wrap {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  min-width:0;
+  text-align:center;
+}
+.time-donut {
+  display:block;
+  width:100%;
+  max-width:190px;
+  height:auto;
+  flex:none;
+  margin:0 auto;
+}
+.time-ratio-value {
+  font:650 23.67px/1.1 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  fill:#293D70;
+  font-variant-numeric:tabular-nums;
+}
+.time-ratio-caption {
+  font:11px/1.2 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  fill:#7E8AA4;
+}
+.time-ratio-hint {font-size:11px;line-height:1.5;color:#7C88A0;margin:8px 0 0}
+.time-ratio-hint[hidden] {display:none!important}
+.time-donut-legend {
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  width:100%;
+  max-width:195px;
+  margin:13px auto 0;
+}
+.time-donut-legend-row {
+  display:grid;
+  grid-template-columns:16px minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  color:#2D416B;
+  font-size:15px;
+  line-height:1.35;
+}
+.time-dot {
+  display:block;
+  width:16px;
+  height:16px;
+  border-radius:50%;
+}
+.time-dot-planned {background:var(--time-blue)}
+.time-dot-actual {background:var(--time-mint)}
+.time-legend-label {text-align:left;white-space:nowrap}
+.time-donut-legend-row strong {
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  font-size:15px;
+  font-weight:650;
+  color:#2D416B;
+  font-variant-numeric:tabular-nums;
+  text-decoration:none;
+  border:0;
+  white-space:nowrap;
+}
+.time-value-list {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:28px;
+  min-width:0;
+  height:100%;
+  position:relative;
+  border-left:0;
+  padding:22px 4px 22px 31px;
+}
+.time-value-list::before {
+  content:"";
+  position:absolute;
+  left:0;
+  top:3px;
+  bottom:3px;
+  width:1px;
+  background:#DCE4F1;
+  pointer-events:none;
+}
+.time-comparison {
+  min-width:0;
+  padding-bottom:23px;
+  border-bottom:1px solid #E0E8F4;
+}
+.time-section-label {
+  margin:0 0 12px;
+  color:#6F7D98;
+  font-size:13px;
+  font-weight:650;
+  line-height:1.35;
+}
+.time-comparison-values {
+  display:flex;
+  align-items:baseline;
+  gap:12px;
+  min-width:0;
+  white-space:nowrap;
+}
+.time-comparison-values strong,
+.time-difference #diffTotal {
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  font-size:25.33px;
+  font-weight:700;
+  line-height:1.23;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.025em;
+  text-decoration:none;
+  border:0;
+  cursor:pointer;
+}
+.time-comparison-values #estTotal {color:var(--time-blue)}
+.time-comparison-values #actualTotal {color:#1BB899}
+.time-comparison-divider {
+  display:inline-block;
+  align-self:center;
+  flex:none;
+  width:1px;
+  height:.93em;
+  background:#AEB9CE;
+}
+.time-difference {min-width:0}
+.time-difference #diffTotal {
+  display:block;
+  margin:0 0 16px;
+  color:#B481D3;
+}
+.time-diff-track {
+  width:calc(100% - 20px);
+  height:13px;
+  overflow:hidden;
+  border-radius:999px;
+  background:#F2ECF7;
+}
+.time-diff-bar {
+  display:block;
+  height:100%;
+  width:0;
+  border-radius:inherit;
+  background:var(--time-purple);
+  transition:width .22s ease;
+}
+.time-summary-footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  min-width:0;
+  margin-top:auto;
+  padding-top:18px;
+}
+.insights-grid #timeDetails {
+  flex:none;
+  margin:0;
+  padding:6px 0;
+  font-size:12px;
+  white-space:nowrap;
+  text-align:left;
+}
+.time-explanation {
+  margin:0;
+  flex:1;
+  min-width:0;
+  text-align:right;
+  font-size:11px;
+  line-height:1.6;
+  color:#7A879F;
+}
+.time-comparison-values strong:focus-visible,
+.time-difference #diffTotal:focus-visible {
+  outline:2px solid #8EACFF;
+  outline-offset:4px;
+  border-radius:2px;
+}
+@media(prefers-reduced-motion:reduce){.time-diff-bar{transition:none}}
+@container time-card (max-width:560px) {
+  .time-overview {
+    grid-template-columns:minmax(0,1fr);
+    gap:18px;
+    min-height:0;
+    margin-top:22px;
+  }
+  .time-donut {max-width:190px}
+  .time-donut-legend {max-width:195px}
+  .time-value-list {
+    border-left:0;
+    border-top:1px solid #DCE4F1;
+    padding:18px 0 0;
+    gap:22px;
+  }
+  .time-value-list::before {display:none}
+  .time-section-label {font-size:11px}
+  .time-comparison-values strong,.time-difference #diffTotal {
+    font-size:23.33px;
+  }
+  .time-summary-footer {margin-top:24px}
+}
+@container time-card (max-width:340px) {
+  .time-comparison-values {gap:8px}
+  .time-comparison-values strong,.time-difference #diffTotal {font-size:21.33px}
+  .time-summary-footer {align-items:flex-start;flex-wrap:wrap}
+  .time-explanation {flex-basis:100%;text-align:right}
+}
+.insights-grid #reflectionStats .hint {font-size:12px;line-height:1.5;margin:0 0 14px}
+.insights-grid .count-cards {
+ display:grid;grid-template-columns:minmax(0,1fr);gap:8px;
+ margin:0;
+}
+.insights-grid .count-cards button {
+ display:flex;flex-direction:row;align-items:center;justify-content:flex-start;
+ min-height:56px;gap:18px;padding:11px 18px;text-align:left;
+ border-color:#e0e6ef;border-radius:8px;background:#fbfcff;
+}
+.insights-grid .count-cards button:hover {background:#f1f6ff}
+.insights-grid .count-cards button:focus-visible {outline:2px solid #2456ea;outline-offset:2px}
+.insights-grid .count-cards strong {flex:none;min-width:30px;text-align:center;font-size:23px;line-height:1.1}
+.insights-grid .count-cards span {font-size:13px;color:#596b85}
+.insights-grid #evidence {margin:12px 0 0;border-radius:8px;max-height:225px;overflow:auto}
+.reflection-journal {border-top:1px solid var(--line);padding-top:9px;margin-top:24px}
+#reflectionStats[hidden],#reflectionContent[hidden],#timeRatioHint[hidden]{display:none!important}
+@media(max-width:850px){
+ .insights-grid {grid-template-columns:minmax(0,1fr)}
+ .insights-grid > .insights-card {padding:18px}
+}
+@media(max-width:420px){
+ .insights-grid .plan-picker {flex-wrap:wrap}
+ .insights-grid .plan-picker select {flex-basis:100%}
+}
