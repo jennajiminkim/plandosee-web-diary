@@ -85,3 +85,12 @@
 - **C83 코드 검사:** 통계 버튼은 `showEvidence()`에서 해당 그룹의 할 일 버튼을 표시하고, 선택 시 `openTask(t)`로 이동. 시간 상세는 `timeDetails`에서 할 일별 예상/실제 합계와 상세 이동 버튼을 표시함. 실제 클릭 검증은 미실시.
 - **주의:** 자유로운 할 일 5건은 특정 계획의 `renderSummary()` 집계에 포함되지 않는 것이 현재 구현의 의도된 동작임.
 - 모든 DB 쿼리는 읽기 전용 SELECT. 실제 사용자 기록과 DB 스키마 변경 없음.
+
+## 2026-10-25 JSON 다운로드 및 Supabase 보안 진단
+
+- **C36: 실제 파일 다운로드 동작 통과(사용자 확인).** 상단 내보내기 버튼으로 JSON 파일 1개 정상 다운로드. JSON 파일 내부의 모든 ID·레코드 수와 Supabase 원본 간 일치 대조는 아직 미실시. 개인 자료 원본은 공개 GitHub에 업로드하지 않음.
+- **Supabase Security Advisor(읽기 전용):** `rls_enabled_no_policy` INFO 9건. 과제 6의 공개 테이블 9개에서 RLS가 활성화됐고 직접 접근용 정책이 없음. 서버 측 service-role API 설계와 일치할 수 있으므로 이것만으로 오류로 판단하지 않음.
+- **Supabase Security Advisor 경고 2건:** `public.pds_remember_task_color()`가 `SECURITY DEFINER`이고 `anon`, `authenticated` 역할에 EXECUTE 권한이 있다는 경고. 함수 본문을 조회한 결과 `RETURNS trigger`인 트리거 함수로, 색상 사용 횟수를 갱신함. PostgreSQL 트리거 함수는 일반 SQL 함수처럼 직접 호출할 수 없으므로 Advisor 경고만으로 실제 익명 RPC 악용 가능성을 확정하지 않음. 최소 권한 관점에서 권한 검토 권장. [Supabase 경고 설명](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable).
+- **C57 실제 XSS 시험** 및 **C58 Git 전체 이력·배포 네트워크·콘솔 점검**은 아직 완료하지 않음. 비밀값은 읽거나 문서에 기록하지 않음.
+- **C83 근거 클릭**은 코드 경로 확인 완료, 운영 사이트에서 실제 클릭 후 상세 화면 확인은 미실시.
+- 이 점검에서는 DB SELECT 및 진단 도구만 사용. 기존 사용자 데이터, 권한 및 스키마 변경 없음.
