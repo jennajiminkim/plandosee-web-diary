@@ -12,11 +12,51 @@ function pastelPeriod(hex,whiteWeight=0.16){
   }).join('');
 }
 const tags={업무:'#f2dfcc',공부:'#dce9f7',취미:'#dcebd9',약속:'#f2e0e9',생활:'#eee3c8',기타:'#e2e2dc'};
+const tagTextColor=hex=>{
+ if(!/^#[0-9a-f]{6}$/i.test(hex||''))return '#273346';
+ const bg=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
+ const luminance=rgb=>{
+  const linear=rgb.map(x=>{x/=255;return x<=0.04045?x/12.92:((x+0.055)/1.055)**2.4});
+  return linear[0]*0.2126+linear[1]*0.7152+linear[2]*0.0722;
+ };
+ const channels=bg.map(x=>x/255);
+ const max=Math.max(...channels),min=Math.min(...channels),delta=max-min;
+ const l=(max+min)/2;
+ let h=0,s=0;
+ if(delta){
+  s=delta/(1-Math.abs(2*l-1));
+  const [r,g,b]=channels;
+  h=max===r?((g-b)/delta)%6:max===g?(b-r)/delta+2:(r-g)/delta+4;
+  h=(h*60+360)%360;
+ }
+ const toRGB=(hue,saturation,lightness)=>{
+  const chroma=saturation*Math.min(lightness,1-lightness);
+  const part=n=>{
+   const k=(n+hue/30)%12;
+   return Math.round((lightness-chroma*Math.max(-1,Math.min(k-3,9-k,1)))*255);
+  };
+  return [part(0),part(8),part(4)];
+ };
+ const bgLight=luminance(bg),useLightText=bgLight<=0.179;
+ const saturation=s<0.15?0:Math.min(0.7,Math.max(0.44,s*0.8));
+ const textSaturation=useLightText?(s<0.15?0:Math.min(0.55,Math.max(0.25,s*0.6))):saturation;
+ let textRGB=[39,51,70];
+ for(let i=0;i<=100;i++){
+  const textLightness=useLightText?Math.min(0.99,0.78+i*0.002):Math.max(0.07,0.39-i*0.003);
+  textRGB=toRGB(h,textSaturation,textLightness);
+  const textLight=luminance(textRGB);
+  if((Math.max(bgLight,textLight)+0.05)/(Math.min(bgLight,textLight)+0.05)>=4.5)break;
+ }
+ return '#'+textRGB.map(x=>x.toString(16).padStart(2,'0')).join('');
+};
 const iso=d=>{const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`};
 const addDays=(d,n)=>{const r=new Date(d);r.setDate(r.getDate()+n);return r};
 function weekStart(d){const v=new Date(d.getFullYear(),d.getMonth(),d.getDate());v.setDate(v.getDate()-((v.getDay()+6)%7));return v}
 const days=()=>Array.from({length:7},(_,i)=>iso(addDays(week,i)));
 const formatMinutes=n=>{const neg=n<0?'−':'';n=Math.abs(n);return `${neg}${n>=60?Math.floor(n/60)+'시간 ':''}${n%60}분`};
+// Compact h/m display belongs to the time summary only; other diary labels stay Korean.
+const formatSummaryHm=minutes=>{const n=Math.trunc(Number(minutes)||0),sign=n<0?'−':'',abs=Math.abs(n);return `${sign}${Math.floor(abs/60)}h ${abs%60}m`};
+const formatSignedSummaryHm=minutes=>{const n=Math.trunc(Number(minutes)||0),sign=n>0?'+ ':n<0?'- ':'',abs=Math.abs(n);return `${sign}${Math.floor(abs/60)}h ${abs%60}m`};
 const todaySeoul=()=>{const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const o=Object.fromEntries(parts.map(p=>[p.type,p.value]));return `${o.year}-${o.month}-${o.day}`};
 week=weekStart(new Date(todaySeoul()+'T12:00:00'));archiveMonth=todaySeoul().slice(0,7);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -24,6 +64,11 @@ const activeTasks=()=>state.tasks.filter(t=>!t.deleted_at);
 const activePlans=()=>state.plans.filter(p=>!p.deleted_at);
 const effectivePriority=t=>state.plans.find(p=>p.id===t.plan_id)?.priority??t.priority;
 const weeklyJournal=()=>state.journals.find(j=>j.week_start===days()[0]);
+// Editor text is a draft, never a second copy of the saved archive.
+let reflectionDraftWeek=null;
+function resetReflectionEditor(){
+ $('answer').value='';$('improvement').value='';reflectionDraftWeek=days()[0];
+}
 const palettes=[['Original','#FAFAFA','#1E4099'],['Pale Blue','#EFF5FF','#2456EA'],['Pale Purple','#F4F0FF','#7155B9'],['Pale Green','#EBF8F1','#29765D']];
 const defaults=['#F5DCDC','#F6ECC4','#DCEBD9','#DCE9F7','#F0DBE9','#F3E3D3'];
 function swatches(){return [...new Set([...state.colors.slice().sort((a,b)=>b.usage_count-a.usage_count||b.last_used.localeCompare(a.last_used)).map(c=>c.color).filter(c=>/^#[0-9a-f]{6}$/i.test(c)),...defaults])].slice(0,14)}
@@ -38,7 +83,33 @@ const pendingActions=new Set();async function run(action,data,{reload=true}={}){
 function weekTasks(){const from=days()[0],to=days()[6],query=$('search').value.toLowerCase().trim(),s=$('filterStatus').value,tag=$('filterTag').value;return activeTasks().filter(t=>{const p=state.plans.find(p=>p.id===t.plan_id);const inWeek=t.start_date&&t.end_date?t.start_date<=to&&t.end_date>=from:(t.due_date? t.due_date>=from&&t.due_date<=to:(p&&p.start_date<=to&&p.end_date>=from));const late=t.status!=='done'&&t.due_date&&t.due_date<todaySeoul();return inWeek&&(!query||`${t.title} ${t.tag} ${p?.title||''}`.toLowerCase().includes(query))&&(s==='all'||(s==='late'?late:t.status===s))&&(tag==='all'||t.tag===tag)}).sort((a,b)=>{const order=$('sort').value;if(order==='due')return (a.due_date||'9999').localeCompare(b.due_date||'9999')||effectivePriority(a)-effectivePriority(b)||a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id);if(order==='title')return a.title.localeCompare(b.title,'ko')||effectivePriority(a)-effectivePriority(b)||a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id);return effectivePriority(a)-effectivePriority(b)||a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id)})}
 function renderPlanList(){const dd=days(),box=$('planList');if(!box)return;box.replaceChildren();const plans=activePlans().filter(p=>p.start_date<=dd[6]&&p.end_date>=dd[0]).sort((a,b)=>a.priority-b.priority||a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id));if(!plans.length){box.innerHTML='<div class="empty-state">이 주에 연결된 계획이 없습니다. + 새 계획으로 시작해 보세요.</div>';return}for(const p of plans){const btn=document.createElement('button');btn.type='button';btn.className='plan-card'+(selectedPlan===p.id?' active':'');const count=planTasks(p.id).length;btn.innerHTML=`<strong>${esc(p.title)}</strong><small>${esc(p.start_date)} ~ ${esc(p.end_date)}</small><div class="meta"><span class="pill">우선 ${String(p.priority).padStart(2,'0')}</span><span class="pill">${count}개 할 일</span><span class="pill">예상 ${formatMinutes(p.estimated_minutes)}</span></div><small>${esc(p.success_criteria||'성공 기준 없음')}</small>`;btn.onclick=()=>{selectedPlan=p.id;render()};btn.ondblclick=()=>openPlan(p);box.append(btn)}}
 function render(){const dd=days();$('weekTitle').textContent=`${week.toLocaleString('en-US',{month:'short'})} ${String(week.getDate()).padStart(2,'0')} — ${String(addDays(week,6).getDate()).padStart(2,'0')}, ${week.getFullYear()}`;$('weekYear').textContent='';dd.forEach((d,i)=>{const th=$('dh'+i);const number=document.createElement('span');number.className='day-number';number.textContent=String(Number(d.slice(-2)));const label=document.createElement('span');label.className='day-week';label.textContent=['MON','TUE','WED','THU','FRI','SAT','SUN'][i];th.replaceChildren(number,label);});const filter=$('filterTag'),before=filter.value;filter.replaceChildren(new Option('전체 분류','all'),...Object.keys(tags).map(t=>new Option(t,t)));filter.value=Object.hasOwn(tags,before)?before:'all';const selected=$('planSelect'),selectedOld=selectedPlan;selected.replaceChildren(new Option('계획 선택 없음',''),...activePlans().map(p=>new Option(`${p.title} (${p.start_date}~${p.end_date})`,p.id)));if(selectedOld)selected.value=selectedOld;selectedPlan=selected.value||'';renderPlanList();const rows=$('rows');rows.replaceChildren();const tasks=weekTasks();$('taskCount').textContent=`${tasks.length}개의 할 일 · 현재 정렬: ${$('sort').selectedOptions[0].text}`;if(!tasks.length){rows.innerHTML='<tr><td colspan="9" class="empty-state">이 주에는 표시할 할 일이 없습니다. + 할 일 버튼으로 작은 실천을 추가하세요.</td></tr>'}for(const t of tasks){const tr=document.createElement('tr');const rank=document.createElement('td');rank.className='rank';rank.innerHTML=`<button aria-label="${esc(t.title)} 우선순위 수정"><span class="priority-badge">${String(effectivePriority(t)).padStart(2,'0')}</span></button>`;rank.querySelector('.priority-badge').style.backgroundColor=t.color;rank.querySelector('button').onclick=()=>openTask(t);tr.append(rank);const name=document.createElement('td');name.innerHTML=`<div class="task-name ${t.status==='done'?'done-title':''}"><button><strong>${esc(t.title)}</strong><small>${esc(t.tag)} · ${t.status==='done'?'완료':'진행 중'} · ${t.estimated_minutes}분${t.plan_id?'':' · 계획 없음'}</small></button></div>`;name.querySelector('button').onclick=()=>openTask(t);tr.append(name);for(const d of dd){const c=cell(t.id,d),inRange=t.start_date&&t.end_date&&d>=t.start_date&&d<=t.end_date;const td=document.createElement('td'),b=document.createElement('button');b.className='cell-btn'+(inRange&&t.mode==='range'?' range':'');if(inRange&&t.mode==='range'){b.style.setProperty('--period-tint',pastelPeriod(t.color));b.style.setProperty('--period-hover',pastelPeriod(t.color,0.05))}b.setAttribute('aria-label',`${t.title} ${d} 진행 기록`);const glyph=c?(c.state==='done'?'✓':c.state==='progress'?'◐':'○'):(inRange||d===t.due_date?'○':'·');b.innerHTML=`<span class="mark">${glyph}</span>${c?.progress?`<span class="progress">${esc(c.progress)}</span>`:''}`;b.onclick=()=>openCell(t,d);td.append(b);tr.append(td)}rows.append(tr)}renderSummary();}
-function renderSummary(){const ts=planTasks(selectedPlan),logs=state.logs.filter(l=>ts.some(t=>t.id===l.task_id));const est=ts.reduce((s,t)=>s+t.estimated_minutes,0),actual=logs.reduce((s,l)=>s+l.actual_minutes,0);$('estTotal').textContent=formatMinutes(est);$('actualTotal').textContent=formatMinutes(actual);$('diffTotal').textContent=formatMinutes(actual-est);const stats={planned:ts,done:ts.filter(t=>t.status==='done'),late:ts.filter(t=>t.status!=='done'&&t.due_date&&t.due_date<todaySeoul()),blocked:ts.filter(t=>taskLogs(t.id).some(l=>l.blocker?.trim()))};$('nPlanned').textContent=stats.planned.length;$('nDone').textContent=stats.done.length;$('nLate').textContent=stats.late.length;$('nBlocked').textContent=stats.blocked.length;const r=weeklyJournal();$('question').textContent=r?.question||questions[questionIndex];$('answer').value=r?.discovery||'';$('improvement').value=r?.next_action||'';$('reflectionSaved').textContent=r?.discovery||r?.next_action?'저장된 주간 기록 · 나의 기록에서 보기':'';if(activeEvidence)showEvidence(activeEvidence,stats);else $('evidence').hidden=true;}
+function renderTimeRing(estimatedMinutes,actualMinutes){
+ const base=$('timeMainArc'),extra=$('timeExtraArc'),
+       pct=$('timeRatioValue'),hint=$('timeRatioHint'),
+       circleBase=2*Math.PI*57,circleExtra=2*Math.PI*74;
+ if(estimatedMinutes<=0){
+  pct.textContent='—';
+  hint.hidden=false;
+  base.style.display='none';
+  base.setAttribute('stroke-dasharray','0 '+circleBase);
+  extra.style.display='none';
+  return;
+ }
+ const ratio=Math.max(0,actualMinutes/estimatedMinutes),
+       main=Math.min(1,ratio),
+       overflow=Math.min(1,Math.max(0,ratio-1));
+ pct.textContent=Math.round(ratio*100)+'%';
+ hint.hidden=true;
+ base.style.display=main>0?'':'none';
+ base.setAttribute('stroke-dasharray',String(main*circleBase)+' '+String(circleBase));
+ base.setAttribute('stroke-linecap',main>=1?'butt':'round');
+ extra.style.display=overflow>0?'':'none';
+ extra.setAttribute('stroke-dasharray',String(overflow*circleExtra)+' '+String(circleExtra));
+ extra.setAttribute('stroke-linecap',overflow>=1?'butt':'round');
+ // The percentage is never clamped: when time exceeds 200%, the thin
+ // outer ring is full but the central number still shows the true ratio.
+}
+function renderSummary(){const ts=planTasks(selectedPlan),logs=state.logs.filter(l=>ts.some(t=>t.id===l.task_id));const est=ts.reduce((s,t)=>s+t.estimated_minutes,0),actual=logs.reduce((s,l)=>s+l.actual_minutes,0);$('estTotal').textContent=formatSummaryHm(est);$('actualTotal').textContent=formatSummaryHm(actual);$('estLegend').textContent=formatSummaryHm(est);$('actualLegend').textContent=formatSummaryHm(actual);const delta=actual-est;$('diffTotal').textContent=formatSignedSummaryHm(delta);const relativeDifference=est>0?Math.abs(delta)/est*100:0;$('timeDiffBar').style.width=Math.min(100,relativeDifference)+'%';const comparison=delta>0?`예상보다 ${formatSummaryHm(delta)} 더 기록`:delta<0?`예상보다 ${formatSummaryHm(-delta)} 적게 기록`:'예상과 같은 시간 기록';$('timeDiffTrack').setAttribute('aria-label',est>0?`${comparison}. 예상 시간 대비 차이 ${Math.round(relativeDifference)}%`:'비교할 예상 시간이 없어 차이 비율을 표시할 수 없습니다.');for(const [id,label] of [['estTotal','계획한 시간'],['actualTotal','실제로 기록한 시간'],['diffTotal','예상 대비 시간 차이']]){$(id).setAttribute('aria-label',`${label} ${$(id).textContent}. 시간 집계 근거 기록 보기`)}renderTimeRing(est,actual);const stats={planned:ts,done:ts.filter(t=>t.status==='done'),late:ts.filter(t=>t.status!=='done'&&t.due_date&&t.due_date<todaySeoul()),blocked:ts.filter(t=>taskLogs(t.id).some(l=>l.blocker?.trim()))};$('nPlanned').textContent=stats.planned.length;$('nDone').textContent=stats.done.length;$('nLate').textContent=stats.late.length;$('nBlocked').textContent=stats.blocked.length;const r=weeklyJournal();if(reflectionDraftWeek!==days()[0])resetReflectionEditor();$('question').textContent=r?.question||questions[questionIndex];$('reflectionSaved').textContent=r?.discovery||r?.next_action?'저장된 주간 카드 · 나의 기록에서 수정 가능':'';if(activeEvidence)showEvidence(activeEvidence,stats);else $('evidence').hidden=true;}
 function showEvidence(group,stats){activeEvidence=group;const box=$('evidence'),items=stats[group]||[];box.hidden=false;box.replaceChildren();const title=document.createElement('strong');title.textContent=({planned:'계획',done:'완료',late:'지연',blocked:'막힘'})[group]+' · 근거 기록';box.append(title);if(!items.length){box.append(document.createTextNode(' — 해당 기록 없음'));return}for(const t of items){const b=document.createElement('button');b.textContent=`${t.title} (${t.due_date||'마감일 없음'})`;b.onclick=()=>openTask(t);box.append(b)}}
 const formField=(label,name,value='',type='text',extra='')=>`<div class="field"><label for="f-${name}">${label}</label><input id="f-${name}" name="${name}" type="${type}" value="${esc(value)}" ${extra}></div>`;
 const selectField=(label,name,choices,value)=>`<div class="field"><label for="f-${name}">${label}</label><select id="f-${name}" name="${name}">${choices.map(([v,t])=>`<option value="${esc(v)}" ${v===String(value)?'selected':''}>${esc(t)}</option>`).join('')}</select></div>`;
@@ -85,14 +156,14 @@ $('archivePrev').onclick=()=>{const [y,m]=archiveMonth.split('-').map(Number);ar
 $('archiveNext').onclick=()=>{const [y,m]=archiveMonth.split('-').map(Number);archiveMonth=iso(new Date(y,m,1)).slice(0,7);renderArchive()};
 
 function exportAll(){const payload={app:'plan.do.see',exported_at:new Date().toISOString(),timezone_for_overdue:'Asia/Seoul',...state};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`plan-do-see-${todaySeoul()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),500)}
-function goWeek(nextWeek){week=nextWeek;selectedPlan=activePlans().find(p=>p.start_date<=days()[6]&&p.end_date>=days()[0])?.id||'';activeEvidence='';render()}
-$('prev').onclick=()=>goWeek(addDays(week,-7));$('next').onclick=()=>goWeek(addDays(week,7));$('today').onclick=()=>goWeek(weekStart(new Date(todaySeoul()+'T12:00:00')));$('search').oninput=render;['filterStatus','filterTag','sort'].forEach(id=>$(id).onchange=render);$('planSelect').onchange=e=>{selectedPlan=e.target.value;activeEvidence='';renderSummary()};$('addTask').onclick=()=>openTask();$('addPlan').onclick=()=>openPlan();$('addPlanTop').onclick=()=>openPlan();$('export').onclick=exportAll;$('exportTop').onclick=exportAll;$('shade').onclick=closeDrawer;$('closeDrawer').onclick=closeDrawer;document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('overlay').hidden)closeDrawer()});$('toggleReflection').onclick=()=>{const panel=$('reflectionContent');panel.hidden=!panel.hidden;$('toggleReflection').textContent=panel.hidden?'펼치기 ⌄':'접기 ⌃';$('toggleReflection').setAttribute('aria-expanded',String(!panel.hidden))};document.querySelectorAll('[data-group]').forEach(b=>b.onclick=()=>{activeEvidence=activeEvidence===b.dataset.group?'':b.dataset.group;renderSummary()});$('switchQuestion').onclick=()=>{questionIndex=(questionIndex+1)%questions.length;$('question').textContent=questions[questionIndex]};$('timeDetails').onclick=()=>{const ts=planTasks(selectedPlan);drawer('시간 기록 상세',`<div class="panel"><h3>예상 시간은 할 일별 저장값을 단순 합산합니다.</h3><p>실제 시간은 실행 기록의 소요 시간을 합산합니다.</p></div>${ts.map(t=>`<div class="log-item"><strong>${esc(t.title)}</strong><p>예상 ${formatMinutes(t.estimated_minutes)} · 실제 ${formatMinutes(taskLogs(t.id).reduce((sum,l)=>sum+l.actual_minutes,0))}</p><button class="link-btn" data-id="${t.id}">상세 보기 →</button></div>`).join('')||'기록이 없습니다.'}`,root=>root.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>openTask(state.tasks.find(t=>t.id===b.dataset.id))))};$('saveReflection').onclick=async()=>{
+function goWeek(nextWeek){resetReflectionEditor();week=nextWeek;selectedPlan=activePlans().find(p=>p.start_date<=days()[6]&&p.end_date>=days()[0])?.id||'';activeEvidence='';render()}
+$('prev').onclick=()=>goWeek(addDays(week,-7));$('next').onclick=()=>goWeek(addDays(week,7));$('today').onclick=()=>goWeek(weekStart(new Date(todaySeoul()+'T12:00:00')));$('search').oninput=render;['filterStatus','filterTag','sort'].forEach(id=>$(id).onchange=render);$('planSelect').onchange=e=>{selectedPlan=e.target.value;activeEvidence='';renderSummary()};$('addTask').onclick=()=>openTask();$('addPlan').onclick=()=>openPlan();$('addPlanTop').onclick=()=>openPlan();$('export').onclick=exportAll;$('exportTop').onclick=exportAll;$('shade').onclick=closeDrawer;$('closeDrawer').onclick=closeDrawer;document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('overlay').hidden)closeDrawer()});()=>{};document.querySelectorAll('[data-group]').forEach(b=>b.onclick=()=>{activeEvidence=activeEvidence===b.dataset.group?'':b.dataset.group;renderSummary()});$('switchQuestion').onclick=()=>{questionIndex=(questionIndex+1)%questions.length;$('question').textContent=questions[questionIndex]};$('timeDetails').onclick=()=>{const ts=planTasks(selectedPlan);drawer('시간 기록 상세',`<div class="panel"><h3>예상 시간은 할 일별 저장값을 단순 합산합니다.</h3><p>실제 시간은 실행 기록의 소요 시간을 합산합니다.</p></div>${ts.map(t=>`<div class="log-item"><strong>${esc(t.title)}</strong><p>예상 ${formatMinutes(t.estimated_minutes)} · 실제 ${formatMinutes(taskLogs(t.id).reduce((sum,l)=>sum+l.actual_minutes,0))}</p><button class="link-btn" data-id="${t.id}">상세 보기 →</button></div>`).join('')||'기록이 없습니다.'}`,root=>root.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>openTask(state.tasks.find(t=>t.id===b.dataset.id))))};$('saveReflection').onclick=async()=>{
  const answer=$('answer').value.trim(),next=$('improvement').value.trim();
  if(!answer&&!next){toast('한 문장만 작성해도 좋아요.');return}
  const current=weeklyJournal();const btn=$('saveReflection');btn.disabled=true;btn.textContent='저장 중...';
- try{const saved=await run('journal.save',{week_start:days()[0],plan_id:selectedPlan||null,question:$('question').textContent,discovery:answer,next_action:next,bg_color:current?.bg_color||'#FAFAFA',date_color:current?.date_color||'#1E4099'});
- if(saved){archiveMonth=saved.entry_date.slice(0,7);showArchive();toast('돌아보기를 한 장의 기록으로 저장했습니다.')}}finally{btn.disabled=false;btn.textContent='돌아보기 저장'}
-};$('carry').onclick=async()=>{if(!selectedPlan){toast('계획을 선택하세요.');return}let journal=weeklyJournal();if(!journal||journal.next_action!==$('improvement').value){journal=await run('journal.save',{week_start:days()[0],plan_id:selectedPlan,question:$('question').textContent,discovery:$('answer').value,next_action:$('improvement').value,bg_color:journal?.bg_color||'#FAFAFA',date_color:journal?.date_color||'#1E4099'});if(!journal)return}let r=state.reflections.find(x=>x.plan_id===selectedPlan);if(!r){toast('계획별 돌아보기 저장을 확인해 주세요.');return}const target=addDays(week,7),v=await run('reflection.next',{id:r.id,start_date:iso(target),end_date:iso(addDays(target,6))});if(v){week=target;selectedPlan=v.id;render();toast('다음 계획으로 연결했습니다.')}};
+ try{const saved=await run('journal.save',{week_start:days()[0],plan_id:selectedPlan||null,question:$('question').textContent,discovery:answer||current?.discovery||'',next_action:next||current?.next_action||'',bg_color:current?.bg_color||'#FAFAFA',date_color:current?.date_color||'#1E4099'});
+ if(saved){resetReflectionEditor();archiveMonth=saved.entry_date.slice(0,7);showArchive();toast('돌아보기를 한 장의 기록으로 저장했습니다.')}}finally{btn.disabled=false;btn.textContent='돌아보기 저장'}
+};$('carry').onclick=async()=>{if(!selectedPlan){toast('계획을 선택하세요.');return}let journal=weeklyJournal();const draftDiscovery=$('answer').value.trim(),draftNext=$('improvement').value.trim();const effectiveNext=draftNext||journal?.next_action?.trim()||'';if(!effectiveNext){toast('다음에 다르게 해볼 내용을 먼저 입력해 주세요.');return}if(!journal||draftDiscovery||draftNext||journal.plan_id!==selectedPlan){journal=await run('journal.save',{week_start:days()[0],plan_id:selectedPlan,question:draftDiscovery?$('question').textContent:(journal?.question||$('question').textContent),discovery:draftDiscovery||journal?.discovery||'',next_action:effectiveNext,bg_color:journal?.bg_color||'#FAFAFA',date_color:journal?.date_color||'#1E4099'});if(!journal)return;resetReflectionEditor()}let r=state.reflections.find(x=>x.plan_id===selectedPlan);if(!r){toast('계획별 돌아보기 저장을 확인해 주세요.');return}const target=addDays(week,7),v=await run('reflection.next',{id:r.id,start_date:iso(target),end_date:iso(addDays(target,6))});if(v){week=target;selectedPlan=v.id;render();toast('다음 계획으로 연결했습니다.')}};
 ['estTotal','actualTotal','diffTotal'].forEach(id=>{const el=$(id);el.setAttribute('role','button');el.setAttribute('tabindex','0');el.setAttribute('aria-label','시간 집계 근거 기록 보기');el.onclick=()=>$('timeDetails').click();el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click()}}});
 load();
 
