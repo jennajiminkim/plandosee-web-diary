@@ -20,7 +20,7 @@ with sync_playwright() as p:
  assert page.locator('#improvement').input_value()==''
  assert page.locator('#estTotal').inner_text()=='0h 20m'
  assert page.locator('#actualTotal').inner_text()=='0h 0m'
- assert page.locator('#timeRatioValue').inner_text()=='0%'
+ assert page.locator('#timeRatioValue').text_content()=='0%'
  assert page.locator('#timeDiffTrack').count()==1
  page.locator('#toggleReflection').click()
  assert page.locator('#reflectionContent').is_hidden()
