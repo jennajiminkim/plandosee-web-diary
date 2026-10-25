@@ -16,6 +16,18 @@ with sync_playwright() as p:
  page.evaluate('(s)=>{window.fetch=async()=>({ok:true,json:async()=>s});window._mock=s}',state)
  page.set_content(html,wait_until='load')
  page.evaluate("week=weekStart(new Date('2026-10-07T12:00:00'));render()")
+ assert page.locator('#answer').input_value()==''
+ assert page.locator('#improvement').input_value()==''
+ assert page.locator('#estTotal').inner_text()=='0h 20m'
+ assert page.locator('#actualTotal').inner_text()=='0h 0m'
+ assert page.locator('#timeRatioValue').inner_text()=='0%'
+ assert page.locator('#timeDiffTrack').count()==1
+ page.locator('#toggleReflection').click()
+ assert page.locator('#reflectionContent').is_hidden()
+ assert page.locator('#reflectionStats').is_hidden()
+ page.locator('#toggleReflection').click()
+ assert page.locator('#reflectionContent').is_visible()
+ assert page.locator('#reflectionStats').is_visible()
  page.locator('.task-name button').click()
  assert page.locator('#f-priority').input_value()=='2'
  assert page.locator('#f-priority').get_attribute('readonly') is not None
@@ -37,5 +49,5 @@ with sync_playwright() as p:
  assert page.locator('#journalForm').count()==1
  assert page.locator('#journalForm .journal-theme').count()==4
  assert not errors,errors
- print('V3 BROWSER PASSED: plan priority inheritance, swatches, plan delete control, readable journal, edit color UI')
+ print('TASK6 PORT BROWSER PASSED: time ring, summary, input draft isolation, reflection panel toggle, task detail, swatches, archive')
  browser.close()
