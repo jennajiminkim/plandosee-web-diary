@@ -2,7 +2,7 @@ name: Task 6 checks
 on:
   pull_request:
   push:
-    branches: [port-task7-ui-no-auth]
+    branches: [port-task7-ui-no-auth, fix/task6-task-and-daily-drawers]
 permissions:
   contents: read
 jobs:
