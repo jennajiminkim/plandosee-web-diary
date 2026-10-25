@@ -30,6 +30,11 @@ with sync_playwright() as p:
  assert page.locator('#reflectionStats').is_visible()
  page.locator('.task-name button').click()
  assert page.locator('#f-priority').input_value()=='2'
+ assert page.locator('#scheduleType').input_value()=='custom'
+ page.locator('#scheduleType').select_option('today')
+ assert page.locator('#scheduleDates').is_hidden()
+ page.locator('#scheduleType').select_option('custom')
+ assert page.locator('#scheduleDates').is_visible()
  assert page.locator('#f-priority').get_attribute('readonly') is not None
  assert page.locator('#colorPalette [data-color="#abcdef"]').count()==1
  page.locator('#f-plan_id').select_option('')
