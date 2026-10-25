@@ -16,7 +16,7 @@ with sync_playwright() as p:
  page.evaluate('(s)=>{window.fetch=async()=>({ok:true,json:async()=>s});window._mock=s}',state)
  page.set_content(html,wait_until='load')
  page.evaluate("week=weekStart(new Date('2026-10-07T12:00:00'));render()")
- page.locator('.priority-badge').click()
+ page.locator('.task-name button').click()
  assert page.locator('#f-priority').input_value()=='2'
  assert page.locator('#f-priority').get_attribute('readonly') is not None
  assert page.locator('#colorPalette [data-color="#abcdef"]').count()==1
