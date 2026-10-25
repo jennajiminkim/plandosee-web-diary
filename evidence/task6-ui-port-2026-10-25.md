@@ -53,3 +53,10 @@
 4. 검증 증거(민감정보 제외)를 이 문서와 `evidence/verification-checklist.md`에 반영.
 5. Preview 확인 후 Draft PR을 병합해 Vercel 운영 배포를 갱신. 운영 데이터·환경변수 변경 없이 진행.
 
+
+## 2026-10-25 최종 코드/배포 검증 업데이트
+- PR #1을 `main`으로 병합함. 병합 커밋: `17635e8d2f7be7b35923017e074021e6425c9f49`.
+- GitHub Actions `Task 6 checks`: Node `npm run check`와 모의 Chromium `tests/browser-v3.py` 모두 **성공** (커밋 `92ceb433`, [실행 기록](https://github.com/jennajiminkim/plandosee-web-diary/actions/runs/40194975171)).
+- Vercel Production 배포 `dpl_EyG79ZBQ3zp39jB3zDYsZKMtjJNw`가 `READY`, `plandosee-web-diary.vercel.app` alias 연결됨.
+- **주의:** 위 브라우저 검사는 모의 API와 시험 데이터를 사용함. Production 웹사이트의 실데이터 저장·새로고침·내보내기 및 시크릿 창 접근은 아직 별도 실측이 필요함.
+- 해당 검증 후의 README 문서 수정만 추가 진행했고, Supabase API 코드·DB 스키마·실제 데이터는 수정하지 않음.
