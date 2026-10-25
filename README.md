@@ -1,6 +1,6 @@
 # plan.do.see — v3 기능 개선판 (2026-10-14)
 
-> **2026-10-25 UI 이식 진행:** 과제 7의 도넛 시간 그래프, 계획 돌아보기 2열 카드, 할 일 분류 배지/사이드 패널, 저장 후 발견·개선점 입력칸 초기화 오류 수정 등을 과제 6의 `port-task7-ui-no-auth` 브랜치로 옮겼습니다. 과제 6의 Supabase 공개 API와 상단 무로그인 안내는 보존하고, 로그인·5일 관찰 기록은 제외했습니다. 아직 운영 `main`에는 병합하지 않았습니다. [Draft PR #1](https://github.com/jennajiminkim/plandosee-web-diary/pull/1) · [이식 범위 및 미검증 항목](evidence/task6-ui-port-2026-10-25.md).
+> **2026-10-25 UI 이식 완료(코드·배포):** 과제 7의 도넛 시간 그래프, 계획 돌아보기 2열 카드, 할 일 분류 배지/사이드 패널, 발견·개선점 저장 후 입력칸 초기화 오류 수정을 과제 6에 반영했습니다. 과제 6의 공개 Supabase API와 무로그인 안내는 유지하고, 인증·5일 관찰 기록은 제외했습니다. [PR #1 병합](https://github.com/jennajiminkim/plandosee-web-diary/pull/1) · 운영 Vercel 배포 `READY` · Node 및 모의 Chromium 브라우저 검사 통과. **실제 DB 저장·새로고침·실제 사용자 자료 검증은 별도 필요.** [검증 상태](evidence/task6-ui-port-2026-10-25.md).
 
 
 **중요: 현재 배포된 앱은 과제 6 v2이며, 이 ZIP은 아직 운영 서버에 반영되지 않았습니다. 기존 Supabase 프로젝트를 반드시 유지하고, `supabase/upgrade-v3.sql`을 실행한 후 변경 파일을 GitHub에 업로드하세요. 기존 프로젝트에 `schema.sql`을 다시 실행하지 마세요.**
@@ -37,7 +37,7 @@
 
 # plan.do.see — little by little. · 과제 6
 
-**상태(2026-10-25): 운영 사이트 배포 주소는 존재하지만, 실제 DB 기록·시크릿 창·제출 증거의 재검증은 필요합니다. UI 이식은 별도 Draft PR에서 진행 중입니다.**
+**상태(2026-10-25): UI 병합 및 Vercel Production `READY` 확인 완료. 실제 DB 기록·시크릿 창·제출 증거의 재검증은 필요합니다.**
 
 이 프로젝트는 최종 합의한 White & Blue v7 디자인을 그대로 기반으로 하고, **예시 데이터와 브라우저 저장 모의 서버는 제거**했습니다. 실제 내용은 Supabase PostgreSQL에 저장됩니다. **로그인은 일부러 없습니다. 링크를 아는 누구나 읽을 수 있고 공개 API를 통해 내용을 수정할 수도 있습니다.** 타인의 개인 정보와 민감한 일기 내용을 넣지 마세요. 접근 제어는 과제 7에 해당합니다.
 
@@ -105,7 +105,7 @@ python3 tests/browser-smoke.py
 
 ## 5. 제출문 (실제 배포 후 수정해 제출)
 
-**결과물 주소:** https://plandosee-web-diary.vercel.app/ — 기존 Production, UI 변경은 아직 미병합
+**결과물 주소:** https://plandosee-web-diary.vercel.app/ — UI 반영된 Production, 배포 `READY`
 
 **소스 주소:** https://github.com/jennajiminkim/plandosee-web-diary
 
