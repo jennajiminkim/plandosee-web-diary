@@ -9,15 +9,32 @@ journal={'id':'123e4567-e89b-42d3-a456-426614174002','week_start':'2026-10-05','
 state={'plans':[plan],'versions':[],'tasks':[task],'cells':[],'logs':[],'completions':[],'reflections':[],'journals':[journal],'colors':[{'color':'#abcdef','usage_count':2,'last_used':'2026-10-11T00:00:00Z'}]}
 html=(root/'index.html').read_text().replace('<link rel="stylesheet" href="/style.css">','<style>'+(root/'style.css').read_text()+'</style>').replace('<script src="/app.js" defer></script>','<script>'+(root/'app.js').read_text()+'</script>')
 with sync_playwright() as p:
- browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox'])
+ browser=p.chromium.launch(headless=True,args=['--no-sandbox'])
  page=browser.new_page(viewport={'width':1440,'height':900})
  errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
  page.goto('about:blank')
  page.evaluate('(s)=>{window.fetch=async()=>({ok:true,json:async()=>s});window._mock=s}',state)
  page.set_content(html,wait_until='load')
- page.evaluate("week=weekStart(new Date('2026-10-07T12:00:00'));render()")
- page.locator('.priority-badge').click()
+ page.evaluate(f"week=weekStart(new Date('2026-10-07T12:00:00'));selectedPlan='{plan_id}';render()")
+ assert page.locator('#answer').input_value()==''
+ assert page.locator('#improvement').input_value()==''
+ assert page.locator('#estTotal').inner_text()=='0h 20m'
+ assert page.locator('#actualTotal').inner_text()=='0h 0m'
+ assert page.locator('#timeRatioValue').text_content()=='0%'
+ assert page.locator('#timeDiffTrack').count()==1
+ page.locator('#toggleReflection').click()
+ assert page.locator('#reflectionContent').is_hidden()
+ assert page.locator('#reflectionStats').is_hidden()
+ page.locator('#toggleReflection').click()
+ assert page.locator('#reflectionContent').is_visible()
+ assert page.locator('#reflectionStats').is_visible()
+ page.locator('.task-name button').click()
  assert page.locator('#f-priority').input_value()=='2'
+ assert page.locator('#scheduleType').input_value()=='custom'
+ page.locator('#scheduleType').select_option('today')
+ assert page.locator('#scheduleDates').is_hidden()
+ page.locator('#scheduleType').select_option('custom')
+ assert page.locator('#scheduleDates').is_visible()
  assert page.locator('#f-priority').get_attribute('readonly') is not None
  assert page.locator('#colorPalette [data-color="#abcdef"]').count()==1
  page.locator('#f-plan_id').select_option('')
@@ -32,10 +49,11 @@ with sync_playwright() as p:
  assert page.locator('.journal-section').count()==2
  assert page.get_by_text('끝까지 한 줄이 잘 보여야 합니다.',exact=False).count()==1
  assert page.locator('.journal-card').bounding_box()['height']>200
- page.screenshot(path='/mnt/data/plan-do-see-v3-preview.png',full_page=True)
+ out=root/'artifacts'/'task6-ui-port-preview.png';out.parent.mkdir(parents=True,exist_ok=True)
+ page.screenshot(path=str(out),full_page=True)
  page.locator('.journal-foot button').click()
  assert page.locator('#journalForm').count()==1
  assert page.locator('#journalForm .journal-theme').count()==4
  assert not errors,errors
- print('V3 BROWSER PASSED: plan priority inheritance, swatches, plan delete control, readable journal, edit color UI')
+ print('TASK6 PORT BROWSER PASSED: time ring, summary, input draft isolation, reflection panel toggle, task detail, swatches, archive')
  browser.close()
