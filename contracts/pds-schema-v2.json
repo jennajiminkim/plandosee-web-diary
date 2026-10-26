@@ -1,26 +1,233 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "plan.do.see persistence contract v2",
-  "description": "A data dictionary and relationship contract, not a validation schema for database row objects.",
+  "title": "plan.do.see persistence contract v2 — Task 6 final deployed schema (v3-compatible)",
+  "description": "Final database tables, columns, relationships, dates and metrics at the Task 6 mandated v2 file path; includes later v3 deployed extensions. Data dictionary, not row validation schema.",
   "version": 2,
   "database": "Supabase PostgreSQL",
-  "api": {"route": "/api/state", "methods": ["GET", "POST"], "visibility": "public_without_login", "secrets": "Vercel server environment only", "readLimitPerTable": 3000},
+  "api": {
+    "route": "/api/state",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "visibility": "public_without_login",
+    "secrets": "Vercel server environment only",
+    "readLimitPerTable": 3000
+  },
   "dateRules": {
-    "calendar_dates": {"type": "PostgreSQL date", "transport": "YYYY-MM-DD", "rule": "No timezone conversion for date-only values"},
-    "execution_times": {"type": "PostgreSQL timestamptz", "transport": "ISO-8601 UTC instant", "rule": "Store UTC; display in Asia/Seoul or browser locale with explicit label"},
-    "overdue": {"timezone": "Asia/Seoul", "rule": "status != done AND due_date < current calendar date in Seoul"},
-    "time_units": {"estimated_minutes": "integer minutes", "actual_minutes": "integer minutes", "difference": "actual minus estimated, integer minutes", "calculation": "round((ended_at - started_at) seconds / 60)"},
-    "current_week": {"firstWeekday": "Monday", "lastWeekday": "Sunday"},
-    "priority": "positive integer; 1 is most important"
+    "calendar_dates": {
+      "type": "PostgreSQL date",
+      "transport": "YYYY-MM-DD",
+      "rule": "No timezone conversion for date-only values"
+    },
+    "execution_times": {
+      "type": "PostgreSQL timestamptz",
+      "transport": "ISO-8601 UTC instant",
+      "rule": "Store UTC; display in Asia/Seoul or browser locale with explicit label"
+    },
+    "overdue": {
+      "timezone": "Asia/Seoul",
+      "rule": "status != done AND due_date < current calendar date in Seoul"
+    },
+    "time_units": {
+      "estimated_minutes": "integer minutes",
+      "actual_minutes": "integer minutes",
+      "difference": "actual minus estimated, integer minutes",
+      "calculation": "round((ended_at - started_at) seconds / 60)"
+    },
+    "current_week": {
+      "firstWeekday": "Monday",
+      "lastWeekday": "Sunday"
+    },
+    "priority": "positive integer; 1 is most important",
+    "weekly_journal": {
+      "week_start": "Monday date (Asia/Seoul)",
+      "entry_date": "Date first saved in Seoul; preserved when editing"
+    }
   },
   "tables": {
-    "pds_plans": {"primaryKey": "id", "fields": {"id": "uuid", "title": "text", "start_date": "date", "end_date": "date", "priority": "integer", "success_criteria": "text", "estimated_minutes": "integer", "from_reflection_id": "uuid nullable; logical link to pds_reflections.id", "created_at": "timestamptz", "updated_at": "timestamptz"}, "constraints": ["end_date >= start_date", "priority >= 1", "estimated_minutes >= 0"]},
-    "pds_plan_versions": {"primaryKey": "id", "fields": {"id": "uuid", "plan_id": "uuid", "snapshot": "jsonb (entire previous plan row)", "changed_at": "timestamptz"}, "relations": {"plan_id": "pds_plans.id"}, "rules": ["Snapshot and plan update occur in a single database transaction via pds_update_plan"]},
-    "pds_tasks": {"primaryKey": "id", "fields": {"id": "uuid", "plan_id": "uuid nullable", "title": "text", "priority": "integer", "tag": "text", "color": "#RRGGBB", "due_date": "date nullable", "start_date": "date nullable", "end_date": "date nullable", "mode": "single|range|repeat", "estimated_minutes": "integer", "estimate_basis": "total|per_session", "status": "active|done", "completed_at": "timestamptz nullable", "deleted_at": "timestamptz nullable", "created_at": "timestamptz"}, "relations": {"plan_id": "pds_plans.id (optional)"}, "rules": ["Soft delete: deleted_at does not physically delete child records", "Only nondeleted tasks count toward plan metrics"]},
-    "pds_cells": {"primaryKey": "id", "unique": ["task_id", "day"], "fields": {"id": "uuid", "task_id": "uuid", "day": "date", "state": "planned|progress|done", "progress": "text", "note": "text"}, "relations": {"task_id": "pds_tasks.id"}},
-    "pds_logs": {"primaryKey": "id", "fields": {"id": "uuid", "task_id": "uuid", "started_at": "timestamptz", "ended_at": "timestamptz", "actual_minutes": "integer", "progress": "text", "blocker": "text", "created_at": "timestamptz"}, "relations": {"task_id": "pds_tasks.id"}, "rules": ["Execution logs do not overwrite the plan or task estimated time", "Blocker count is unique task count with at least one nonblank blocker"]},
-    "pds_completion_events": {"primaryKey": "task_id", "fields": {"task_id": "uuid", "completed_at": "timestamptz"}, "relations": {"task_id": "pds_tasks.id"}, "rules": ["Database transaction locks task row", "Primary key prevents duplicate completion event per task", "Current completed count uses task.status, not event count"]},
-    "pds_reflections": {"primaryKey": "id", "unique": ["plan_id"], "fields": {"id": "uuid", "plan_id": "uuid", "question": "text", "answer": "text", "improvement": "text", "next_plan_id": "uuid nullable", "updated_at": "timestamptz"}, "relations": {"plan_id": "pds_plans.id", "next_plan_id": "pds_plans.id nullable"}, "rules": ["pds_create_next_plan creates next plan once and links it to the reflection"]}
+    "pds_plans": {
+      "primaryKey": "id",
+      "fields": {
+        "id": "uuid",
+        "title": "text",
+        "start_date": "date",
+        "end_date": "date",
+        "priority": "integer",
+        "success_criteria": "text",
+        "estimated_minutes": "integer",
+        "from_reflection_id": "uuid nullable; logical link to pds_reflections.id",
+        "created_at": "timestamptz",
+        "updated_at": "timestamptz",
+        "deleted_at": "timestamptz nullable; deleted plans excluded from active list"
+      },
+      "constraints": [
+        "end_date >= start_date",
+        "priority >= 1",
+        "estimated_minutes >= 0"
+      ],
+      "rules": [
+        "Soft delete retains linked tasks, logs, plan versions and reflections",
+        "Linked tasks inherit plan priority; plan update copies its new priority to active tasks atomically"
+      ]
+    },
+    "pds_plan_versions": {
+      "primaryKey": "id",
+      "fields": {
+        "id": "uuid",
+        "plan_id": "uuid",
+        "snapshot": "jsonb (entire previous plan row)",
+        "changed_at": "timestamptz"
+      },
+      "relations": {
+        "plan_id": "pds_plans.id"
+      },
+      "rules": [
+        "Snapshot and plan update occur in a single database transaction via pds_update_plan"
+      ]
+    },
+    "pds_tasks": {
+      "primaryKey": "id",
+      "fields": {
+        "id": "uuid",
+        "plan_id": "uuid nullable",
+        "title": "text",
+        "priority": "integer",
+        "tag": "text",
+        "color": "#RRGGBB",
+        "due_date": "date nullable",
+        "start_date": "date nullable",
+        "end_date": "date nullable",
+        "mode": "single|range|repeat",
+        "estimated_minutes": "integer",
+        "estimate_basis": "total|per_session",
+        "status": "active|done",
+        "completed_at": "timestamptz nullable",
+        "deleted_at": "timestamptz nullable",
+        "created_at": "timestamptz"
+      },
+      "relations": {
+        "plan_id": "pds_plans.id (optional)"
+      },
+      "rules": [
+        "Soft delete: deleted_at does not physically delete child records",
+        "Only nondeleted tasks count toward plan metrics"
+      ]
+    },
+    "pds_cells": {
+      "primaryKey": "id",
+      "unique": [
+        "task_id",
+        "day"
+      ],
+      "fields": {
+        "id": "uuid",
+        "task_id": "uuid",
+        "day": "date",
+        "state": "planned|progress|done",
+        "progress": "text",
+        "note": "text"
+      },
+      "relations": {
+        "task_id": "pds_tasks.id"
+      }
+    },
+    "pds_logs": {
+      "primaryKey": "id",
+      "fields": {
+        "id": "uuid",
+        "task_id": "uuid",
+        "started_at": "timestamptz",
+        "ended_at": "timestamptz",
+        "actual_minutes": "integer",
+        "progress": "text",
+        "blocker": "text",
+        "created_at": "timestamptz"
+      },
+      "relations": {
+        "task_id": "pds_tasks.id"
+      },
+      "rules": [
+        "Execution logs do not overwrite the plan or task estimated time",
+        "Blocker count is unique task count with at least one nonblank blocker"
+      ]
+    },
+    "pds_completion_events": {
+      "primaryKey": "task_id",
+      "fields": {
+        "task_id": "uuid",
+        "completed_at": "timestamptz"
+      },
+      "relations": {
+        "task_id": "pds_tasks.id"
+      },
+      "rules": [
+        "Database transaction locks task row",
+        "Primary key prevents duplicate completion event per task",
+        "Current completed count uses task.status, not event count"
+      ]
+    },
+    "pds_reflections": {
+      "primaryKey": "id",
+      "unique": [
+        "plan_id"
+      ],
+      "fields": {
+        "id": "uuid",
+        "plan_id": "uuid",
+        "question": "text",
+        "answer": "text",
+        "improvement": "text",
+        "next_plan_id": "uuid nullable",
+        "updated_at": "timestamptz"
+      },
+      "relations": {
+        "plan_id": "pds_plans.id",
+        "next_plan_id": "pds_plans.id nullable"
+      },
+      "rules": [
+        "pds_create_next_plan creates next plan once and links it to the reflection"
+      ]
+    },
+    "pds_weekly_reviews": {
+      "primaryKey": "id",
+      "unique": [
+        "week_start"
+      ],
+      "fields": {
+        "id": "uuid",
+        "week_start": "date; Monday Asia/Seoul",
+        "entry_date": "date; Seoul local date created, unchanged on edits",
+        "plan_id": "uuid nullable",
+        "question": "text",
+        "discovery": "text",
+        "next_action": "text",
+        "bg_color": "#RRGGBB",
+        "date_color": "#RRGGBB",
+        "created_at": "timestamptz",
+        "updated_at": "timestamptz"
+      },
+      "relations": {
+        "plan_id": "pds_plans.id (optional)"
+      },
+      "rules": [
+        "One record per week; repeat save updates same record",
+        "Unwritten weeks create no rows",
+        "Use pds_save_weekly_review RPC to update plan reflection compatibility in one transaction"
+      ]
+    },
+    "pds_color_swatches": {
+      "primaryKey": "color",
+      "fields": {
+        "color": "#RRGGBB",
+        "usage_count": "integer",
+        "last_used": "timestamptz"
+      },
+      "rules": [
+        "Task insert or color change registers this swatch using database trigger",
+        "Shared across all users; public no-login app"
+      ]
+    }
   },
   "aggregation": {
     "scope": "one selected plan_id",
@@ -33,5 +240,17 @@
     "difference": "actual - estimated",
     "evidence": "Clickable metric reveals linked tasks; time metric opens time details which links to task execution records"
   },
-  "security": {"rls": "enabled on all tables", "direct_anon_access": "revoked", "direct_authenticated_access": "revoked", "mutations": "Vercel server function with service-role credentials", "publicAccessWarning": "No login. All API-backed data is public via the app; anyone can also mutate it."}
+  "security": {
+    "rls": "enabled on all tables",
+    "direct_anon_access": "revoked",
+    "direct_authenticated_access": "revoked",
+    "mutations": "Vercel server function with service-role credentials",
+    "publicAccessWarning": "No login. All API-backed data is public via the app; anyone can also mutate it."
+  },
+  "deployedDatabaseSchemaVersion": 3,
+  "compatibilityNote": "Filename and contract version remain v2 for Task 6 submission; final production includes v3 extensions. The separate pds-schema-v3.json is the detailed v3 companion. Both enumerate the same final nine database tables.",
+  "newActions": [
+    "plan.delete",
+    "journal.save"
+  ]
 }
