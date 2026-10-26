@@ -119,3 +119,9 @@
 - **Git 과거 커밋 검사:** GitHub API에서 반환한 기본 브랜치 커밋 36개를 각각 검사. 비밀키 원문 패턴에 걸린 것은 최초 테스트 코드 관련 커밋 2개이며, 검사한 문자열은 `tests/api.test.mjs`의 명시적 mock/example/test fixture로 분류됨. **실제 비밀키로 확인된 항목 없음.** 패턴 기반 검사이므로 미지의 키 형식 및 접근 불가능한 다른 브랜치/삭제 이력까지 절대적 무노출을 보증하지 않음.
 - **Vercel Production:** `plandosee-web-diary.vercel.app`이 READY 배포 `dpl_FKVNuF5fk9YpjtxHuxjoJXZ2e3GQ`에 연결되고 Git SHA `aa478c878` 확인. 배포 소스 파일 목록 API는 `404 File tree not found`, 개별 소스 조회도 `404 File not found`여서 이 API로 실제 배포 파일 원문 확인 불가. **배포 파일 검사 미완료**로 유지.
 - 실제 비밀값은 출력하거나 저장하지 않음. DB·환경변수 변경 없음.
+
+## 2026-10-26 C58 브라우저 배포 파일 검사
+
+- 사용자 Chrome DevTools Sources에서 운영 도메인의 `app.js`, `style.css`가 로드된 것을 확인. 두 파일에서 `sb_secret_`, `SUPABASE_SERVICE_ROLE_KEY`, `service_role` 검색 결과 모두 0건(사용자 직접 확인).
+- Sources 파일 트리에 `index.html`이 독립 항목으로 보이지 않는 것은 오류 근거가 아님. 실제 HTML 문서 응답은 Network → Doc → Response에서 추가 확인 예정.
+- **C58 전체는 부분 확인:** 브라우저에 로드된 JS/CSS 검사는 통과(검색 문자열 범위), HTML 문서 응답은 미확인. Vercel 서버 내부 전체 배포 파일을 직접 조회한 검사는 아님.
