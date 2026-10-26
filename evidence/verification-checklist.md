@@ -125,3 +125,11 @@
 - 사용자 Chrome DevTools Sources에서 운영 도메인의 `app.js`, `style.css`가 로드된 것을 확인. 두 파일에서 `sb_secret_`, `SUPABASE_SERVICE_ROLE_KEY`, `service_role` 검색 결과 모두 0건(사용자 직접 확인).
 - Sources 파일 트리에 `index.html`이 독립 항목으로 보이지 않는 것은 오류 근거가 아님. 실제 HTML 문서 응답은 Network → Doc → Response에서 추가 확인 예정.
 - **C58 전체는 부분 확인:** 브라우저에 로드된 JS/CSS 검사는 통과(검색 문자열 범위), HTML 문서 응답은 미확인. Vercel 서버 내부 전체 배포 파일을 직접 조회한 검사는 아님.
+
+## 2026-10-26 C58 HTML 문서 응답 확인 및 종합 판정
+
+- 사용자 Chrome DevTools Network → Doc → Response에서 운영 사이트 HTML 문서를 확인. 첨부 캡처에서 `sb_secret_` 검색 `No matches found` 확인. 사용자 진술로 `SUPABASE_SERVICE_ROLE_KEY`, `service_role`도 0건.
+- 앞선 사용자 검사: 배포된 `app.js`, `style.css`, `/api/state` 응답 및 Console에서 동일 비밀키 표식 검색 결과 0건.
+- 기본 브랜치 Git 커밋 36개 검사에서 실제 비밀키로 확인된 항목 없음(테스트용 mock 표식은 존재). 서버 환경변수는 원문을 열람하지 않고 설정 위치만 확인.
+- **T06-C58: 통과 (실시한 정적·브라우저 노출 검사 범위).** 비밀키 유출의 모든 가능성을 수학적으로 배제하거나 Vercel 서버 내부의 전체 배포 파일을 열람한 것은 아님. 배포 소스 파일 트리 API는 404를 반환했으며, 대신 실제 브라우저가 받은 HTML/JS/CSS를 검사함.
+- 개인 기록·비밀값 원문을 GitHub에 업로드하지 않았고 DB 및 환경변수를 변경하지 않음.
