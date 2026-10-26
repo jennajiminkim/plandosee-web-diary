@@ -100,7 +100,7 @@ python3 tests/browser-smoke.py
 - `POST /api/state` body `{"action":"task.create","data":{...}}`: `plan.create/update`, `task.create/update/delete/complete/reopen`, `cell.save`, `log.create/delete`, `reflection.save/next`를 지원합니다.
 - 프런트 코드 `app.js`는 비밀키를 모르고 같은 출처의 API만 호출합니다. Supabase `anon/authenticated` 직접 권한은 철회하고 RLS 활성화. Supabase 신규 키는 `Authorization: Bearer`에 보내면 JWT 오류가 나므로 서버에서 `apikey` 헤더만 사용합니다. Vercel API 서버만 service role을 사용합니다.
 - **주의:** 로그인 없는 공개 쓰기 API는 허가되지 않은 변경이나 자동화된 남용을 막지 못합니다. 이 한계는 과제 명세상 의도된 것이며 과제 7에서 인증·권한·데이터 분리를 구현해야 합니다. 민감한 데이터를 넣지 마세요. 이 과제에서는 비밀키 비공개와 DB 직접 접근 차단만 적용합니다.
-- 테이블·필드·관계 및 날짜 규칙: `contracts/pds-schema-v2.json`.
+- **최종 운영 DB의 9개 테이블·컬럼·관계·날짜 규칙:** 과제 6 지정 경로인 [`contracts/pds-schema-v2.json`](contracts/pds-schema-v2.json)에 v3 확장 사항까지 반영했습니다. 동일한 현재 구조의 상세 v3 문서는 [`contracts/pds-schema-v3.json`](contracts/pds-schema-v3.json)입니다. v2 파일명은 과제 명세의 지정 경로를 유지하기 위한 것입니다.
 - 시간: 날짜 값은 `YYYY-MM-DD`, 실행 시각은 `timestamptz` UTC 인스턴트; **실제 시간은 분 단위**, **차이 = 실제 − 예상**. 지연 기준은 Asia/Seoul의 날짜.
 - SQL RPC 세 함수 `pds_update_plan`, `pds_complete_task`, `pds_create_next_plan`은 서버 동시 요청 시 데이터 정합성을 보호합니다.
 - `pds_tasks.plan_id`는 선택 사항이며 NULL 가능합니다. 삭제는 `deleted_at`에 시각을 쓰는 소프트 삭제입니다.
