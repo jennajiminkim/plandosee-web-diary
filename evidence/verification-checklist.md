@@ -112,3 +112,10 @@
 - 사용자가 Chrome DevTools Network → Fetch/XHR의 운영 사이트 `/api/state` 응답에서 `sb_secret_`, `SUPABASE_SERVICE_ROLE_KEY`, `service_role`를 각각 검색해 **모두 0건**임을 확인함. 해당 요청의 HTTP 상태는 `200`으로 이전 캡처에서 확인됨.
 - **C58 네트워크 응답 부분 검사: 통과(검색한 문자열·응답 범위에 한함).** 임의 형식의 모든 비밀값 부재나 전체 네트워크 트래픽을 증명하지 않음.
 - **C58 전체: 부분 확인 유지.** 브라우저 코드·배포 파일·콘솔·Git 전체 기록은 별도 확인 필요. 응답 본문이나 비밀키 원문을 저장소에 업로드하지 않음.
+
+## 2026-10-26 C58 콘솔 및 Git 커밋 검사 후속
+
+- **사용자 브라우저 콘솔 검색:** `sb_secret_`, `service_role`, `SUPABASE_SERVICE_ROLE_KEY` 검색 결과 모두 0건(사용자 직접 확인). 현재 세션·검색 문자열 범위에 한해 통과.
+- **Git 과거 커밋 검사:** GitHub API에서 반환한 기본 브랜치 커밋 36개를 각각 검사. 비밀키 원문 패턴에 걸린 것은 최초 테스트 코드 관련 커밋 2개이며, 검사한 문자열은 `tests/api.test.mjs`의 명시적 mock/example/test fixture로 분류됨. **실제 비밀키로 확인된 항목 없음.** 패턴 기반 검사이므로 미지의 키 형식 및 접근 불가능한 다른 브랜치/삭제 이력까지 절대적 무노출을 보증하지 않음.
+- **Vercel Production:** `plandosee-web-diary.vercel.app`이 READY 배포 `dpl_FKVNuF5fk9YpjtxHuxjoJXZ2e3GQ`에 연결되고 Git SHA `aa478c878` 확인. 배포 소스 파일 목록 API는 `404 File tree not found`, 개별 소스 조회도 `404 File not found`여서 이 API로 실제 배포 파일 원문 확인 불가. **배포 파일 검사 미완료**로 유지.
+- 실제 비밀값은 출력하거나 저장하지 않음. DB·환경변수 변경 없음.
