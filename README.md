@@ -1,9 +1,11 @@
-# plan.do.see — v3 기능 개선판 (2026-10-14)
+# plan.do.see — 과제 6 공개 다이어리 (v3 기능 개선)
 
-> **2026-10-25 UI 이식 완료(코드·배포):** 과제 7의 도넛 시간 그래프, 계획 돌아보기 2열 카드, 할 일 분류 배지/사이드 패널, 발견·개선점 저장 후 입력칸 초기화 오류 수정을 과제 6에 반영했습니다. 과제 6의 공개 Supabase API와 무로그인 안내는 유지하고, 인증·5일 관찰 기록은 제외했습니다. [PR #1 병합](https://github.com/jennajiminkim/plandosee-web-diary/pull/1) · 운영 Vercel 배포 `READY` · Node 및 모의 Chromium 브라우저 검사 통과. **실제 DB 저장·새로고침·실제 사용자 자료 검증은 별도 필요.** [검증 상태](evidence/task6-ui-port-2026-10-25.md).
+> **최종 제출 점검 (2026-10-26):** 공개 결과물 및 소스의 무로그인 접근, Supabase 실제 데이터·새로고침, 할 일 삭제 API의 POST/200/응답/DB 일치, 실행 기록 저장 전후 원계획 보존(DB 직접 실험), JSON 82건·657필드 대조, 집계·근거 이동·다음 계획 연결, 제출문 4줄·판단 3줄을 검증했습니다. 일부 브라우저 전후 캡처와 전수 보안 증명은 수행하지 않았으며 [최종 검증 기록표](evidence/verification-checklist.md)에 범위·한계를 구분했습니다.
+
+> **2026-10-25 UI 이식 이력(당시 기록):** 과제 7의 도넛 시간 그래프, 계획 돌아보기 2열 카드, 할 일 분류 배지/사이드 패널, 발견·개선점 저장 후 입력칸 초기화 오류 수정을 과제 6에 반영했습니다. 과제 6의 공개 Supabase API와 무로그인 안내는 유지하고, 인증·5일 관찰 기록은 제외했습니다. [PR #1 병합](https://github.com/jennajiminkim/plandosee-web-diary/pull/1) · 운영 Vercel 배포 `READY` · Node 및 모의 Chromium 브라우저 검사 통과. 당시에는 실제 DB·사용자 자료 검증이 별도 필요했으며, 이후 2026-10-26에 실시했습니다. [당시 검증 기록](evidence/task6-ui-port-2026-10-25.md).
 
 
-**중요: 현재 배포된 앱은 과제 6 v2이며, 이 ZIP은 아직 운영 서버에 반영되지 않았습니다. 기존 Supabase 프로젝트를 반드시 유지하고, `supabase/upgrade-v3.sql`을 실행한 후 변경 파일을 GitHub에 업로드하세요. 기존 프로젝트에 `schema.sql`을 다시 실행하지 마세요.**
+**현재 운영 주의:** 아래의 v2→v3 업그레이드 절차는 과거 설치·변경 이력 참고용입니다. 이미 배포되어 실제 데이터가 저장된 Supabase 프로젝트에 `supabase/schema.sql`이나 `supabase/upgrade-v3.sql`을 **다시 실행하지 마세요.** 스키마 변경이나 재배포가 필요한 경우에는 별도 백업과 변경 범위 검토가 우선입니다.
 
 ## 이번 수정
 
@@ -37,7 +39,7 @@
 
 # plan.do.see — little by little. · 과제 6
 
-**상태(2026-10-25): UI 병합 및 Vercel Production `READY` 확인 완료. 실제 DB 기록·시크릿 창·제출 증거의 재검증은 필요합니다.**
+**최신 상태(2026-10-26): UI 병합 및 Vercel Production `READY` 확인, 실제 DB 데이터·시크릿 창·제출 증거 후속 검증 완료(범위 및 한계는 [증거 기록표](evidence/verification-checklist.md) 참조).**
 
 이 프로젝트는 최종 합의한 White & Blue v7 디자인을 그대로 기반으로 하고, **예시 데이터와 브라우저 저장 모의 서버는 제거**했습니다. 실제 내용은 Supabase PostgreSQL에 저장됩니다. **로그인은 일부러 없습니다. 링크를 아는 누구나 읽을 수 있고 공개 API를 통해 내용을 수정할 수도 있습니다.** 타인의 개인 정보와 민감한 일기 내용을 넣지 마세요. 접근 제어는 과제 7에 해당합니다.
 
@@ -94,7 +96,7 @@ python3 tests/browser-smoke.py
 
 ## 4. API, 스키마, 공개/보안 정책
 
-- `GET /api/state`: 7개 표의 데이터 전체를 JSON으로 조회합니다 (표별 3,000개 한도; 과제 규모 기준).
+- `GET /api/state`: 9개 데이터 종류(계획·계획 버전·할 일·일별 체크·실행 기록·완료 이벤트·돌아보기·주간 기록·색상)를 JSON으로 조회합니다 (종류별 3,000개 한도; 과제 규모 기준).
 - `POST /api/state` body `{"action":"task.create","data":{...}}`: `plan.create/update`, `task.create/update/delete/complete/reopen`, `cell.save`, `log.create/delete`, `reflection.save/next`를 지원합니다.
 - 프런트 코드 `app.js`는 비밀키를 모르고 같은 출처의 API만 호출합니다. Supabase `anon/authenticated` 직접 권한은 철회하고 RLS 활성화. Supabase 신규 키는 `Authorization: Bearer`에 보내면 JWT 오류가 나므로 서버에서 `apikey` 헤더만 사용합니다. Vercel API 서버만 service role을 사용합니다.
 - **주의:** 로그인 없는 공개 쓰기 API는 허가되지 않은 변경이나 자동화된 남용을 막지 못합니다. 이 한계는 과제 명세상 의도된 것이며 과제 7에서 인증·권한·데이터 분리를 구현해야 합니다. 민감한 데이터를 넣지 마세요. 이 과제에서는 비밀키 비공개와 DB 직접 접근 차단만 적용합니다.
@@ -103,7 +105,7 @@ python3 tests/browser-smoke.py
 - SQL RPC 세 함수 `pds_update_plan`, `pds_complete_task`, `pds_create_next_plan`은 서버 동시 요청 시 데이터 정합성을 보호합니다.
 - `pds_tasks.plan_id`는 선택 사항이며 NULL 가능합니다. 삭제는 `deleted_at`에 시각을 쓰는 소프트 삭제입니다.
 
-## 5. 제출문 (실제 배포 후 수정해 제출)
+## 5. 최종 제출문 (2026-10-26 검증 후 확정)
 
 **결과물 주소:** https://plandosee-web-diary.vercel.app/ — UI 반영된 Production, 배포 `READY`
 
@@ -119,7 +121,7 @@ python3 tests/browser-smoke.py
 
 ④ 안 될 때는 무엇이 보이나요: 서버 요청 실패 시 저장/조회 오류 안내가 나타나거나 기록이 복원되지 않고, 집계 숫자를 눌러도 해당 근거 상세를 확인할 수 없습니다.
 
-**AI와 내 판단 3줄 (C60 · 제출 전 사용자 최종 확인)**
+**AI와 내 판단 3줄 (C60 · 사용자 본인 확인 완료)**
 
 ① AI에게 맡긴 일: 플랜두씨 웹 UI와 Supabase API 구현·개선, 과제 7의 두 사이드바 디자인을 과제 6에 이식, 자동 테스트·보안·실제 DB 검증 보조.
 
@@ -127,7 +129,7 @@ python3 tests/browser-smoke.py
 
 ③ AI 제안을 따르지 않은 일: 과제 7의 인증·5일 관찰 기록을 과제 6에 함께 옮기지 않고, 과제 6의 공개 사용 조건과 기존 데이터 구조를 우선하여 제외함.
 
-**검증 상태:** [실제 DB·브라우저 증거 및 미검증 항목](evidence/verification-checklist.md). C59·C60은 위와 같이 **형식과 초안 작성 완료**이며 실제 본인 판단과 일치하는지 제출 전 확인해야 합니다.
+**검증 상태:** [실제 DB·브라우저 증거 및 남은 검증 한계](evidence/verification-checklist.md). **C59 네 항목 작성 완료, C60 세 항목 작성 및 본인 판단 확인 완료.** C13 삭제 API 요청·응답·DB 삭제 시각의 일치까지 확인했습니다. C27은 DB 직접 INSERT 전후 계획 보존을 검증했으나 웹 API 경유 실측은 별도 수행하지 않았습니다. C36의 한 필드 차이는 파일 내보내기 후 사용자가 테스트 할 일을 삭제한 시점 차이로 확인됐습니다.
 
 ## 6. 비밀값 점검
 
