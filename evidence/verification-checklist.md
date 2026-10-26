@@ -91,7 +91,7 @@
 - **C36: 실제 파일 다운로드 동작 통과(사용자 확인).** 상단 내보내기 버튼으로 JSON 파일 1개 정상 다운로드. JSON 파일 내부의 모든 ID·레코드 수와 Supabase 원본 간 일치 대조는 아직 미실시. 개인 자료 원본은 공개 GitHub에 업로드하지 않음.
 - **Supabase Security Advisor(읽기 전용):** `rls_enabled_no_policy` INFO 9건. 과제 6의 공개 테이블 9개에서 RLS가 활성화됐고 직접 접근용 정책이 없음. 서버 측 service-role API 설계와 일치할 수 있으므로 이것만으로 오류로 판단하지 않음.
 - **Supabase Security Advisor 경고 2건:** `public.pds_remember_task_color()`가 `SECURITY DEFINER`이고 `anon`, `authenticated` 역할에 EXECUTE 권한이 있다는 경고. 함수 본문을 조회한 결과 `RETURNS trigger`인 트리거 함수로, 색상 사용 횟수를 갱신함. PostgreSQL 트리거 함수는 일반 SQL 함수처럼 직접 호출할 수 없으므로 Advisor 경고만으로 실제 익명 RPC 악용 가능성을 확정하지 않음. 최소 권한 관점에서 권한 검토 권장. [Supabase 경고 설명](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable).
-- **C57 실제 XSS 시험** 및 **C58 Git 전체 이력·배포 네트워크·콘솔 점검**은 아직 완료하지 않음. 비밀값은 읽거나 문서에 기록하지 않음.
+- **C57 실제 XSS 시험은 2026-10-26 통과(아래 기록 참조).** **C58 Git 전체 이력·배포 네트워크·콘솔 점검**은 아직 완료하지 않음. 비밀값은 읽거나 문서에 기록하지 않음.
 - **C83 근거 클릭**은 코드 경로 확인 완료, 운영 사이트에서 실제 클릭 후 상세 화면 확인은 미실시.
 - 이 점검에서는 DB SELECT 및 진단 도구만 사용. 기존 사용자 데이터, 권한 및 스키마 변경 없음.
 
@@ -100,3 +100,9 @@
 - **T06-C83: 통과 (사용자 직접 확인).** 과제 6 운영 웹사이트에서 돌아보기의 계획·완료·지연·막힘 집계 숫자를 각각 클릭했을 때 해당 근거 기록의 상세 사이드바가 열리는 것을 확인함.
 - 기존 소스·모의 UI 검사 및 실제 Supabase 집계 SQL 재계산 결과와 구분하여, 이번 증거는 **사용자 실제 브라우저 조작 결과**로 기록함.
 - 증거는 사용자 진술이며 개별 클릭 화면 캡처는 보관되지 않음. DB 및 기존 사용자 기록 변경 없음.
+
+## 2026-10-26 C57 실제 브라우저 검증 및 C58 추가 정적 점검
+
+- **T06-C57: 통과 (테스트 범위 내).** 사용자가 운영 사이트의 할 일 이름에 `<script>alert('test')</script>`를 저장. 첨부 화면에서 상세 사이드바 입력값과 주간 체크표의 할 일 제목이 태그 문자 그대로 표시됨. 사용자가 새로고침 후 할 일을 다시 열어도 경고창이 나타나지 않는 것을 확인함. 이는 저장형 XSS 기본 시나리오 1건의 통과이며 모든 XSS 변형을 포괄하지 않음.
+- **C58 부분 확인:** GitHub 현재 `api/state.js`는 `SUPABASE_URL`과 `SUPABASE_SERVICE_ROLE_KEY`를 `process.env`에서만 읽음. `vercel.json`의 CSP에 `script-src 'self'`가 설정됨. Vercel 환경변수 **이름과 대상 환경만** 조회했으며, 서버 서비스 키는 Production 범위에만 설정됨. **비밀값 원문은 조회·복사·출력하지 않음.** Git 과거 커밋 전체, 실제 브라우저 네트워크/콘솔 및 최종 배포 파일은 아직 확인하지 못했으므로 C58 전체 통과로 표기하지 않음.
+- 기존 사용자 자료·Supabase 스키마·배포 환경변수는 변경하지 않음.
